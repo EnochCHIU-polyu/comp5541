@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/", label: "Workspace" },
+  { to: "/kg", label: "Knowledge Graph" },
 ];
 
 function linkClass(active: boolean): string {
