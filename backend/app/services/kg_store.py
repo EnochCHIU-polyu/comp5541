@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import uuid as _uuid_mod
 from pathlib import Path
 from typing import Optional
 
@@ -15,16 +16,29 @@ logger = logging.getLogger(__name__)
 _KG_STORE_DIR = Path(os.getenv("KG_STORE_DIR", "data/kg_store"))
 
 
+def _safe_graph_id(graph_id: str) -> str:
+    """
+    Validate and canonicalise *graph_id* as a UUID4-format string.
+
+    Raises ValueError for any input that is not a valid UUID, thereby
+    preventing path-traversal attacks before the value is used in a
+    file-system path.  The returned value is the canonical lower-case
+    hyphenated UUID string produced by str(uuid.UUID(...)), which never
+    contains path separators.
+    """
+    return str(_uuid_mod.UUID(graph_id))
+
+
 def _graph_path(graph_id: str) -> Path:
-    return _KG_STORE_DIR / "graphs" / f"{graph_id}.json"
+    return _KG_STORE_DIR / "graphs" / f"{_safe_graph_id(graph_id)}.json"
 
 
 def _chunks_path(graph_id: str) -> Path:
-    return _KG_STORE_DIR / "chunks" / f"{graph_id}.jsonl"
+    return _KG_STORE_DIR / "chunks" / f"{_safe_graph_id(graph_id)}.jsonl"
 
 
 def _quartz_dir(graph_id: str) -> Path:
-    return _KG_STORE_DIR / "quartz" / graph_id
+    return _KG_STORE_DIR / "quartz" / _safe_graph_id(graph_id)
 
 
 def save_graph(graph: KGGraph) -> None:

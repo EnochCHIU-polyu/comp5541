@@ -165,7 +165,12 @@ async def get_node_detail(
 
 @router.get("/{graph_id}/quartz/graph.json")
 async def get_quartz_graph_json(graph_id: str):
-    path = _quartz_dir(graph_id) / "graph.json"
+    from app.services.kg_store import _safe_graph_id
+    try:
+        safe_id = _safe_graph_id(graph_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid graph_id format")
+    path = _quartz_dir(safe_id) / "graph.json"
     if not path.exists():
         raise HTTPException(status_code=404, detail="Quartz export not ready")
     return FileResponse(str(path), media_type="application/json")
