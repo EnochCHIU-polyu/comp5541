@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.audits import router as audits_router
 from app.api.routes.benchmark import router as benchmark_router
 from app.api.routes.vulnerabilities import router as vulnerabilities_router
+from app.api.routes.kg import router as kg_router
 
 
 if not logging.getLogger().handlers:
@@ -30,6 +31,7 @@ app.add_middleware(
 app.include_router(audits_router)
 app.include_router(benchmark_router)
 app.include_router(vulnerabilities_router)
+app.include_router(kg_router)
 
 
 @app.get("/healthz")
