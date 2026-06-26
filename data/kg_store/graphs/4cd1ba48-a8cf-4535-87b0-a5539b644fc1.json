@@ -1,0 +1,301 @@
+{
+  "graph_id": "4cd1ba48-a8cf-4535-87b0-a5539b644fc1",
+  "title": "CNN",
+  "nodes": [
+    {
+      "id": "convolutional_neural_network",
+      "label": "Convolutional Neural Network (CNN)",
+      "node_type": "concept",
+      "background_intro": "A Convolutional Neural Network (CNN) is a type of deep neural network designed for processing structured grid data, such as images. It typically consists of convolutional layers, pooling layers, activation functions, and fully-connected layers. CNNs are effective for tasks like image recognition due to their ability to learn spatial hierarchies of features.",
+      "source_refs": [
+        {
+          "chunk_id": "p3",
+          "page": 3,
+          "span": "Recap:ConvolutionalNeuralNetwork",
+          "text": "3\nRecap:ConvolutionalNeuralNetwork\nConvolution Layers\nFully-ConnectedLayers\nActivationFunction\nPooling Layers"
+        }
+      ]
+    },
+    {
+      "id": "convolution_layer",
+      "label": "Convolution Layer",
+      "node_type": "concept",
+      "background_intro": "A convolution layer applies a set of learnable filters to an input image to produce an activation map or feature map. Each filter computes a dot product between its weights and a small region of the input, effectively detecting local features like edges and textures. The spatial dimensions of the output are determined by parameters like stride and padding.",
+      "source_refs": [
+        {
+          "chunk_id": "p4",
+          "page": 4,
+          "span": "Recap:Convolution Layer",
+          "text": "4\nRecap:Convolution Layer\n323\n3x32x32image 3x5x5filter\n1number:the result of taking a dot product between the filterandasmall3x5x5chunkoftheimage(i.e.5*5*3=75-dimensionaldotproduct+bias)\n32"
+        },
+        {
+          "chunk_id": "p5",
+          "page": 5,
+          "span": "1+ (N + 2P) - F) / stride",
+          "text": "5\nRecap: convolution Layer\n323\n3x32x32image 3x5x5filter\n32\nactivationmap(or feature map)\n281\n28\n1+ (N + 2P) - F) / stride"
+        }
+      ]
+    },
+    {
+      "id": "activation_function",
+      "label": "Activation Function",
+      "node_type": "concept",
+      "background_intro": "An activation function introduces non-linearity into a neural network, allowing it to learn complex patterns. It affects gradient flow during backpropagation, impacting optimization and training dynamics. Common choices include Sigmoid, tanh, ReLU, and Leaky ReLU, each with different properties regarding representation power, computational cost, and ease of optimization.",
+      "source_refs": [
+        {
+          "chunk_id": "p12",
+          "page": 12,
+          "span": "Training set-up:ActivationFunction",
+          "text": "12\nTraining set-up:ActivationFunction\nArtificialNeuralNetworkArtificialNeuron"
+        },
+        {
+          "chunk_id": "p16",
+          "page": 16,
+          "span": "Theactivationfunctionaffectsgradientflow",
+          "text": "16\nTraining set-up:ActivationFunction\nf\n𝑦=𝑓𝑤1𝑥1+𝑤2𝑥2=𝑓(𝑧)𝑥1\n𝑦𝑤1\n𝑥2𝑤2 UpstreamGradient\n𝜕𝐿𝜕𝑦\n𝜕𝑦𝜕𝑧𝜕𝐿𝜕𝑤1=𝜕𝐿𝜕𝑦𝜕𝑦𝜕𝑧𝜕𝑧𝜕𝑤1=!\"!#𝑓′(𝑧)𝑥1\nLocalGradient\nInput\nTheactivationfunctionaffectsgradientflow"
+        }
+      ]
+    },
+    {
+      "id": "sigmoid",
+      "label": "Sigmoid Activation",
+      "node_type": "concept",
+      "background_intro": "The Sigmoid activation function squashes input values into the range [0,1], making it historically popular for interpreting outputs as probabilities or biological neuron firing rates. However, it suffers from saturation, where gradients become very small (vanishing gradient problem), which can halt learning in deep networks by preventing weight updates.",
+      "source_refs": [
+        {
+          "chunk_id": "p18",
+          "page": 18,
+          "span": "Sigmoid •Mathematically,itsquashes numbers to range [0,1]",
+          "text": "18\nTraining set-up:ActivationFunction\nSigmoid\n•Mathematically,itsquashes numbers to range [0,1]•Historically popular:ØRelate the output to a probability score.ØInterprete as a saturating “firing rate” of a biologicalneuron"
+        },
+        {
+          "chunk_id": "p19",
+          "page": 19,
+          "span": "ProblemsforSigmoidFunction1.Saturated neurons “kill” the gradients",
+          "text": "Training set-up:ActivationFunction\nProblemsforSigmoidFunction1.Saturated neurons “kill” the gradients andweightswillneverchange2.Vanishing Gradient Problem in deep layers"
+        }
+      ]
+    },
+    {
+      "id": "relu",
+      "label": "ReLU Activation",
+      "node_type": "concept",
+      "background_intro": "ReLU (Rectified Linear Unit) is a widely used activation function defined as max(0,x). It is computationally efficient and helps alleviate the vanishing gradient problem by not saturating for positive inputs. ReLU promotes sparse activation, which can aid in optimization, though it may suffer from 'dying neurons' where gradients become zero for negative inputs.",
+      "source_refs": [
+        {
+          "chunk_id": "p13",
+          "page": 13,
+          "span": "ReLU",
+          "text": "13\nTraining set-up:ActivationFunctionSigmoid\ntanh\nReLU\nMaxout\nELU\nLeaky ReLUmax(0.01x,x)Q:Howtochoose?A:Weshouldconsider•Representationpower"
+        },
+        {
+          "chunk_id": "p15",
+          "page": 15,
+          "span": "Sparse propagation ReLU",
+          "text": "15\nTraining set-up:ActivationFunction\nQ:Howtochoose?A:Weshouldconsider•Representationpower•Computationalcost• Easeofoptimization\nSparse propagation\nReLU"
+        }
+      ]
+    },
+    {
+      "id": "transfer_learning",
+      "label": "Transfer Learning",
+      "node_type": "concept",
+      "background_intro": "Transfer learning involves taking a model pre-trained on a large dataset (e.g., ImageNet) and adapting it to a new, often smaller, task. Key steps include loading the pre-trained model, freezing some layers, replacing the output layer, and fine-tuning selected layers with a lower learning rate. This approach leverages generic features learned from the source task to improve performance on the target task.",
+      "source_refs": [
+        {
+          "chunk_id": "p7",
+          "page": 7,
+          "span": "TransferLearning1.ImageNetPre-training2.SmallDataset",
+          "text": "7\nTransferLearning1.ImageNetPre-training2.SmallDataset(withCClasses)\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFreezethese\nImage\nReinitialize thisandtrain\nFC-C\nFC-4096\nFC-4096\nImage\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nConv-512\nConv-512\nMaxPool\nFC-C\nFC-4096\nFC-4096\nFreezethese\nLowerlearningrate when finetuning; 1/10 of original LR is good starting point\nTrainthese\nWith bigger dataset,train morelayers\n3.LargerDataset\nImage\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFC-1000\nFC-4096\nFC-4096\nMorespecific\nMoregeneric"
+        },
+        {
+          "chunk_id": "p8",
+          "page": 8,
+          "span": "Main steps for transfer learning1. Load a Pre-trained Model 2. Freeze Layers",
+          "text": "Transfer Learning in PyTorch\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFreezethese\nImage\nReinitialize thisandtrain\nFC-C\nFC-4096\nFC-4096 Main steps for transfer learning1. Load a Pre-trained Model 2. Freeze Layers3. Replace Output Layer4. Unfreeze and Fine-tune Selected Layers   5. Data Collection and Preprocessing 6. Train and Evaluate"
+        }
+      ]
+    },
+    {
+      "id": "vanishing_gradient",
+      "label": "Vanishing Gradient Problem",
+      "node_type": "concept",
+      "background_intro": "The vanishing gradient problem occurs in deep neural networks when gradients become extremely small as they are backpropagated through many layers, particularly with saturating activation functions like Sigmoid. This prevents weights in earlier layers from updating effectively, stalling training and making it difficult to learn deep representations.",
+      "source_refs": [
+        {
+          "chunk_id": "p19",
+          "page": 19,
+          "span": "2.Vanishing Gradient Problem in deep layers",
+          "text": "Training set-up:ActivationFunction\nProblemsforSigmoidFunction1.Saturated neurons “kill” the gradients andweightswillneverchange2.Vanishing Gradient Problem in deep layers"
+        },
+        {
+          "chunk_id": "p20",
+          "page": 20,
+          "span": "2.Vanishing Gradient Problem in deep layers",
+          "text": "20\nTraining set-up:ActivationFunction\nProblemsforSigmoidFunction1.Saturated neurons “kill” the gradients andweightswillneverchange2.Vanishing Gradient Problem in deep layers\n𝑓!\"#…𝑤$𝑦!\n𝑤%𝑤# 𝑓!𝑓%𝑓#\n𝑦%=𝑓%𝑤%\"#𝑦%\"#+𝑏"
+        }
+      ]
+    },
+    {
+      "id": "feature_map",
+      "label": "Feature Map (Activation Map)",
+      "node_type": "concept",
+      "background_intro": "A feature map, or activation map, is the output of applying a convolutional filter to an input image. Each feature map highlights the presence of specific learned features (e.g., edges, textures) at different spatial locations. Shallow layers tend to produce maps representing generic local features, while deeper layers capture more specific, abstract patterns.",
+      "source_refs": [
+        {
+          "chunk_id": "p5",
+          "page": 5,
+          "span": "activationmap(or feature map)",
+          "text": "5\nRecap: convolution Layer\n323\n3x32x32image 3x5x5filter\n32\nactivationmap(or feature map)\n281\n28\n1+ (N + 2P) - F) / stride"
+        },
+        {
+          "chunk_id": "p6",
+          "page": 6,
+          "span": "Shallow layers tend to learn generic local features and deeperlayerstendtolearnmorespecific features.",
+          "text": "Recap:Whatdoconvolutionalfilterslearn?\n“dog”Conv2Conv3Conv1\nShallow layers tend to learn generic local features and deeperlayerstendtolearnmorespecific features.\n6Zeiler, Matthew D., and Rob Fergus. “Visualizing and understanding convolutional networks.”ECCV,2014"
+        }
+      ]
+    },
+    {
+      "id": "pooling_layer",
+      "label": "Pooling Layer",
+      "node_type": "concept",
+      "background_intro": "A pooling layer (e.g., MaxPooling) downsamples feature maps by summarizing the presence of features in patches, reducing spatial dimensions and computational load. This helps achieve translation invariance and control overfitting by providing a form of abstraction. Pooling is typically applied after convolutional and activation layers in a CNN architecture.",
+      "source_refs": [
+        {
+          "chunk_id": "p3",
+          "page": 3,
+          "span": "Pooling Layers",
+          "text": "3\nRecap:ConvolutionalNeuralNetwork\nConvolution Layers\nFully-ConnectedLayers\nActivationFunction\nPooling Layers"
+        },
+        {
+          "chunk_id": "p7",
+          "page": 7,
+          "span": "MaxPool",
+          "text": "7\nTransferLearning1.ImageNetPre-training2.SmallDataset(withCClasses)\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFreezethese\nImage\nReinitialize thisandtrain\nFC-C\nFC-4096\nFC-4096\nImage\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nConv-512\nConv-512\nMaxPool\nFC-C\nFC-4096\nFC-4096\nFreezethese\nLowerlearningrate when finetuning; 1/10 of original LR is good starting point\nTrainthese\nWith bigger dataset,train morelayers\n3.LargerDataset\nImage\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFC-1000\nFC-4096\nFC-4096\nMorespecific\nMoregeneric"
+        }
+      ]
+    },
+    {
+      "id": "fully_connected_layer",
+      "label": "Fully-Connected Layer",
+      "node_type": "concept",
+      "background_intro": "Fully-connected layers are traditional neural network layers where each neuron is connected to every neuron in the previous layer. In CNNs, they are often used at the end of the network to combine high-level features extracted by convolutional and pooling layers for final classification or regression tasks. They can be reinitialized during transfer learning to adapt to new output classes.",
+      "source_refs": [
+        {
+          "chunk_id": "p3",
+          "page": 3,
+          "span": "Fully-ConnectedLayers",
+          "text": "3\nRecap:ConvolutionalNeuralNetwork\nConvolution Layers\nFully-ConnectedLayers\nActivationFunction\nPooling Layers"
+        },
+        {
+          "chunk_id": "p7",
+          "page": 7,
+          "span": "FC-C FC-4096 FC-4096",
+          "text": "7\nTransferLearning1.ImageNetPre-training2.SmallDataset(withCClasses)\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFreezethese\nImage\nReinitialize thisandtrain\nFC-C\nFC-4096\nFC-4096\nImage\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nConv-512\nConv-512\nMaxPool\nFC-C\nFC-4096\nFC-4096\nFreezethese\nLowerlearningrate when finetuning; 1/10 of original LR is good starting point\nTrainthese\nWith bigger dataset,train morelayers\n3.LargerDataset\nImage\nMaxPool\nConv-64\nConv-64\nMaxPool\nConv-128\nConv-128\nMaxPool\nConv-256\nConv-256\nMaxPool\nConv-512\nConv-512\nMaxPool\nConv-512\nConv-512\nFC-1000\nFC-4096\nFC-4096\nMorespecific\nMoregeneric"
+        }
+      ]
+    },
+    {
+      "id": "gradient_flow",
+      "label": "Gradient Flow",
+      "node_type": "concept",
+      "background_intro": "Gradient flow refers to the propagation of gradients during backpropagation, which is essential for updating network weights via optimization algorithms like SGD. The choice of activation function critically influences gradient flow; functions that saturate (e.g., Sigmoid) can cause gradients to vanish, while non-saturating ones (e.g., ReLU) help maintain stronger gradients, facilitating deeper network training.",
+      "source_refs": [
+        {
+          "chunk_id": "p16",
+          "page": 16,
+          "span": "Theactivationfunctionaffectsgradientflow",
+          "text": "16\nTraining set-up:ActivationFunction\nf\n𝑦=𝑓𝑤1𝑥1+𝑤2𝑥2=𝑓(𝑧)𝑥1\n𝑦𝑤1\n𝑥2𝑤2 UpstreamGradient\n𝜕𝐿𝜕𝑦\n𝜕𝑦𝜕𝑧𝜕𝐿𝜕𝑤1=𝜕𝐿𝜕𝑦𝜕𝑦𝜕𝑧𝜕𝑧𝜕𝑤1=!\"!#𝑓′(𝑧)𝑥1\nLocalGradient\nInput\nTheactivationfunctionaffectsgradientflow"
+        },
+        {
+          "chunk_id": "p17",
+          "page": 17,
+          "span": "𝜕𝐿𝜕𝑤1=𝜕𝐿𝜕𝑦𝜕𝑦𝜕𝑧𝜕𝑧𝜕𝑤1",
+          "text": "17\n𝑓!\"#…𝑤!𝑦!𝑤$𝑤# 𝑓!𝑓$𝑓#\n𝑦$=𝑓$𝑧$\nTraining set-up:ActivationFunction𝜕𝐿𝜕𝑤1=𝜕𝐿𝜕𝑦𝜕𝑦𝜕𝑧𝜕𝑧𝜕𝑤1=!\"!#𝑓′(𝑧)𝑥1\n𝐿\n𝑧$=𝑤$%&𝑦$%&+𝑏\n𝑥"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "convolutional_neural_network",
+      "target_id": "convolution_layer",
+      "relation": "is_part_of",
+      "weight": 0.95
+    },
+    {
+      "source_id": "convolutional_neural_network",
+      "target_id": "pooling_layer",
+      "relation": "is_part_of",
+      "weight": 0.9
+    },
+    {
+      "source_id": "convolutional_neural_network",
+      "target_id": "activation_function",
+      "relation": "uses",
+      "weight": 0.95
+    },
+    {
+      "source_id": "convolutional_neural_network",
+      "target_id": "fully_connected_layer",
+      "relation": "is_part_of",
+      "weight": 0.85
+    },
+    {
+      "source_id": "convolution_layer",
+      "target_id": "feature_map",
+      "relation": "produces",
+      "weight": 0.95
+    },
+    {
+      "source_id": "activation_function",
+      "target_id": "gradient_flow",
+      "relation": "affects",
+      "weight": 0.9
+    },
+    {
+      "source_id": "sigmoid",
+      "target_id": "vanishing_gradient",
+      "relation": "causes",
+      "weight": 0.85
+    },
+    {
+      "source_id": "relu",
+      "target_id": "vanishing_gradient",
+      "relation": "mitigates",
+      "weight": 0.8
+    },
+    {
+      "source_id": "transfer_learning",
+      "target_id": "fully_connected_layer",
+      "relation": "modifies",
+      "weight": 0.75
+    },
+    {
+      "source_id": "transfer_learning",
+      "target_id": "convolutional_neural_network",
+      "relation": "applies_to",
+      "weight": 0.85
+    },
+    {
+      "source_id": "sigmoid",
+      "target_id": "activation_function",
+      "relation": "is_a_type_of",
+      "weight": 0.9
+    },
+    {
+      "source_id": "relu",
+      "target_id": "activation_function",
+      "relation": "is_a_type_of",
+      "weight": 0.9
+    },
+    {
+      "source_id": "gradient_flow",
+      "target_id": "vanishing_gradient",
+      "relation": "related_to",
+      "weight": 0.8
+    }
+  ],
+  "created_at": "2026-06-26T09:21:43.338005"
+}

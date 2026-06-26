@@ -4,9 +4,14 @@ All tuneable hyperparameters and API settings live here.
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+_ROOT_DIR = Path(__file__).resolve().parent
+_DOTENV_PATH = _ROOT_DIR / ".env"
+
+load_dotenv(dotenv_path=_DOTENV_PATH, override=False)
+load_dotenv(override=False)
 
 
 def _env_bool(name: str, default: bool = False) -> bool:

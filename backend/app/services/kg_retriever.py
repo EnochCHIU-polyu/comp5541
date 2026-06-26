@@ -18,6 +18,8 @@ from typing import Optional
 from app.services.kg_store import load_chunks, load_graph
 
 logger = logging.getLogger(__name__)
+_NODE_DETAIL_CACHE: dict[tuple[str, str, str, int, str], dict] = {}
+_MIN_EVIDENCE_SCORE = 0.08
 
 # ---------------------------------------------------------------------------
 # TF-IDF retrieval
@@ -113,6 +115,11 @@ async def get_node_details(
 
     Returns a dict with keys: node_id, label, background_intro, explanation, evidence.
     """
+    cache_key = (graph_id, node_id, query or "", top_k, model)
+    cached = _NODE_DETAIL_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
     graph = load_graph(graph_id)
     if graph is None:
         return {"error": f"Graph {graph_id} not found"}
@@ -138,6 +145,8 @@ async def get_node_details(
 
     if not top_chunks:
         explanation = "EVIDENCE_INSUFFICIENT"
+    elif float(top_chunks[0].get("score", 0.0)) < _MIN_EVIDENCE_SCORE:
+        explanation = "EVIDENCE_INSUFFICIENT"
     else:
         evidence_texts = [c.get("text", "") for c in top_chunks]
         try:
@@ -152,10 +161,12 @@ async def get_node_details(
             logger.error("Explanation LLM failed for node %s: %s", node_id, exc)
             explanation = "EVIDENCE_INSUFFICIENT"
 
-    return {
+    result = {
         "node_id": node_id,
         "label": node.label,
         "background_intro": node.background_intro,
         "explanation": explanation,
         "evidence": evidence,
     }
+    _NODE_DETAIL_CACHE[cache_key] = result
+    return result

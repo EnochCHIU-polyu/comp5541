@@ -1,6 +1,11 @@
 import type { KGGraph, KGSnapshot, NodeDetailResponse } from "../types";
 
 const BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+const nodeDetailCache = new Map<string, Promise<NodeDetailResponse>>();
+
+function nodeDetailCacheKey(graphId: string, nodeId: string, query?: string) {
+  return `${graphId}:${nodeId}:${query ?? ""}:5`;
+}
 
 export async function extractKG(params: {
   title: string;
@@ -42,11 +47,28 @@ export async function fetchNodeDetail(
   nodeId: string,
   query?: string,
 ): Promise<NodeDetailResponse> {
+  const cacheKey = nodeDetailCacheKey(graphId, nodeId, query);
+  const cached = nodeDetailCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const params = new URLSearchParams({ top_k: "5" });
   if (query) params.set("query", query);
-  const res = await fetch(`${BASE}/api/v1/kg/${graphId}/nodes/${nodeId}?${params}`);
-  if (!res.ok) throw new Error(`Node detail fetch failed (${res.status})`);
-  return res.json();
+  const request = fetch(`${BASE}/api/v1/kg/${graphId}/nodes/${nodeId}?${params}`)
+    .then(async (res) => {
+      if (!res.ok) {
+        throw new Error(`Node detail fetch failed (${res.status})`);
+      }
+      return res.json();
+    })
+    .catch((err) => {
+      nodeDetailCache.delete(cacheKey);
+      throw err;
+    });
+
+  nodeDetailCache.set(cacheKey, request);
+  return request;
 }
 
 export function openKGEventStream(

@@ -1,0 +1,126 @@
+{
+  "nodes": [
+    {
+      "id": "convolutional_neural_network",
+      "label": "Convolutional Neural Network (CNN)",
+      "type": "concept"
+    },
+    {
+      "id": "convolution_layer",
+      "label": "Convolution Layer",
+      "type": "concept"
+    },
+    {
+      "id": "activation_function",
+      "label": "Activation Function",
+      "type": "concept"
+    },
+    {
+      "id": "sigmoid",
+      "label": "Sigmoid Activation",
+      "type": "concept"
+    },
+    {
+      "id": "relu",
+      "label": "ReLU Activation",
+      "type": "concept"
+    },
+    {
+      "id": "transfer_learning",
+      "label": "Transfer Learning",
+      "type": "concept"
+    },
+    {
+      "id": "vanishing_gradient",
+      "label": "Vanishing Gradient Problem",
+      "type": "concept"
+    },
+    {
+      "id": "feature_map",
+      "label": "Feature Map (Activation Map)",
+      "type": "concept"
+    },
+    {
+      "id": "pooling_layer",
+      "label": "Pooling Layer",
+      "type": "concept"
+    },
+    {
+      "id": "fully_connected_layer",
+      "label": "Fully-Connected Layer",
+      "type": "concept"
+    },
+    {
+      "id": "gradient_flow",
+      "label": "Gradient Flow",
+      "type": "concept"
+    }
+  ],
+  "edges": [
+    {
+      "source": "convolutional_neural_network",
+      "target": "convolution_layer",
+      "relation": "is_part_of"
+    },
+    {
+      "source": "convolutional_neural_network",
+      "target": "pooling_layer",
+      "relation": "is_part_of"
+    },
+    {
+      "source": "convolutional_neural_network",
+      "target": "activation_function",
+      "relation": "uses"
+    },
+    {
+      "source": "convolutional_neural_network",
+      "target": "fully_connected_layer",
+      "relation": "is_part_of"
+    },
+    {
+      "source": "convolution_layer",
+      "target": "feature_map",
+      "relation": "produces"
+    },
+    {
+      "source": "activation_function",
+      "target": "gradient_flow",
+      "relation": "affects"
+    },
+    {
+      "source": "sigmoid",
+      "target": "vanishing_gradient",
+      "relation": "causes"
+    },
+    {
+      "source": "relu",
+      "target": "vanishing_gradient",
+      "relation": "mitigates"
+    },
+    {
+      "source": "transfer_learning",
+      "target": "fully_connected_layer",
+      "relation": "modifies"
+    },
+    {
+      "source": "transfer_learning",
+      "target": "convolutional_neural_network",
+      "relation": "applies_to"
+    },
+    {
+      "source": "sigmoid",
+      "target": "activation_function",
+      "relation": "is_a_type_of"
+    },
+    {
+      "source": "relu",
+      "target": "activation_function",
+      "relation": "is_a_type_of"
+    },
+    {
+      "source": "gradient_flow",
+      "target": "vanishing_gradient",
+      "relation": "related_to"
+    }
+  ]
+}
