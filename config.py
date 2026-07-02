@@ -4,7 +4,11 @@ All tuneable hyperparameters and API settings live here.
 """
 
 import os
-from dotenv import load_dotenv
+try:
+	from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - environment-dependent fallback
+	def load_dotenv():
+		return False
 
 load_dotenv()
 

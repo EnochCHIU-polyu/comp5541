@@ -1,0 +1,13 @@
+{
+  "total_cases": 5,
+  "overall_accuracy": 0.4,
+  "numeric_accuracy": 0.4,
+  "citation_rate": 0.6,
+  "error_counts": {
+    "E1": 0,
+    "E2": 3,
+    "E3": 2,
+    "E4": 0,
+    "E5": 3
+  }
+}

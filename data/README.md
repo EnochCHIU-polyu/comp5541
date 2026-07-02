@@ -52,6 +52,36 @@ Output is saved to `data/synthetic_contracts/`.
 
 ---
 
+## PDF to Markdown Pipeline
+
+You can convert a user-provided PDF into markdown and store it directly in this folder.
+
+From project root:
+
+```bash
+.venv/bin/python run_pdf_to_md.py --pdf /path/to/file.pdf
+```
+
+Optional flags:
+
+```bash
+.venv/bin/python run_pdf_to_md.py \
+	--pdf /path/to/file.pdf \
+	--name custom_name.md \
+	--output-dir data \
+	--overwrite
+```
+
+The output markdown file will be saved under `data/`.
+
+Implementation files:
+
+- `phase1_data_pipeline/pdf_to_markdown.py`
+- `scripts/pdf_to_md.py`
+- `run_pdf_to_md.py`
+
+---
+
 ## Notes
 
 - `data/benchmarks/` is excluded from version control (listed in `.gitignore`).
