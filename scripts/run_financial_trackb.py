@@ -21,6 +21,69 @@ from phase2_llm_engine.financial_trackb_workflow import (
 )
 from phase4_evaluation.financial_trackb_scorer import aggregate_scores, score_case
 
+VARIANT_FLAGS = {
+    "baseline": {
+        "use_h1_retrieval": False,
+        "use_h2_numeric_guard": False,
+        "use_h3_chronology_guard": False,
+        "use_h4_verifier": False,
+    },
+    "h1": {
+        "use_h1_retrieval": True,
+        "use_h2_numeric_guard": False,
+        "use_h3_chronology_guard": False,
+        "use_h4_verifier": False,
+    },
+    "h2": {
+        "use_h1_retrieval": False,
+        "use_h2_numeric_guard": True,
+        "use_h3_chronology_guard": False,
+        "use_h4_verifier": False,
+    },
+    "h3": {
+        "use_h1_retrieval": False,
+        "use_h2_numeric_guard": False,
+        "use_h3_chronology_guard": True,
+        "use_h4_verifier": False,
+    },
+    "h4": {
+        "use_h1_retrieval": False,
+        "use_h2_numeric_guard": False,
+        "use_h3_chronology_guard": False,
+        "use_h4_verifier": True,
+    },
+    "all": {
+        "use_h1_retrieval": True,
+        "use_h2_numeric_guard": True,
+        "use_h3_chronology_guard": True,
+        "use_h4_verifier": True,
+    },
+    "all_minus_h1": {
+        "use_h1_retrieval": False,
+        "use_h2_numeric_guard": True,
+        "use_h3_chronology_guard": True,
+        "use_h4_verifier": True,
+    },
+    "all_minus_h2": {
+        "use_h1_retrieval": True,
+        "use_h2_numeric_guard": False,
+        "use_h3_chronology_guard": True,
+        "use_h4_verifier": True,
+    },
+    "all_minus_h3": {
+        "use_h1_retrieval": True,
+        "use_h2_numeric_guard": True,
+        "use_h3_chronology_guard": False,
+        "use_h4_verifier": True,
+    },
+    "all_minus_h4": {
+        "use_h1_retrieval": True,
+        "use_h2_numeric_guard": True,
+        "use_h3_chronology_guard": True,
+        "use_h4_verifier": False,
+    },
+}
+
 
 def _resolve_input_path(raw_path: str) -> str:
     """Resolve CLI file path with a fallback to repo-local data/ directory."""
@@ -36,31 +99,32 @@ def _resolve_input_path(raw_path: str) -> str:
 
 
 def _mode_to_flags(mode: str) -> dict:
-    flags = {
-        "use_h1_retrieval": False,
-        "use_h2_numeric_guard": False,
-        "use_h3_chronology_guard": False,
-        "use_h4_verifier": False,
+    return dict(VARIANT_FLAGS[mode])
+
+
+def _build_variant_summary(mode: str, flags: dict) -> dict:
+    enabled = [name for name, on in flags.items() if on]
+    disabled = [name for name, on in flags.items() if not on]
+    return {
+        "variant_name": mode,
+        "enabled_harnesses": enabled,
+        "disabled_harnesses": disabled,
+        "is_baseline": mode == "baseline",
+        "is_full_workflow": mode == "all",
+        "is_leave_one_out_ablation": mode.startswith("all_minus_"),
     }
-    if mode == "h1":
-        flags["use_h1_retrieval"] = True
-    elif mode == "h2":
-        flags["use_h2_numeric_guard"] = True
-    elif mode == "h3":
-        flags["use_h3_chronology_guard"] = True
-    elif mode == "h4":
-        flags["use_h4_verifier"] = True
-    elif mode == "all":
-        for k in list(flags.keys()):
-            flags[k] = True
-    return flags
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Track B financial baseline/harness workflow")
     parser.add_argument("--report", default="data/report.md", help="Path to source report text")
     parser.add_argument("--cases", default="data/trackb_eval_cases.jsonl", help="Path to JSONL cases")
-    parser.add_argument("--mode", choices=["baseline", "h1", "h2", "h3", "h4", "all"], default="baseline")
+    parser.add_argument(
+        "--mode",
+        choices=list(VARIANT_FLAGS.keys()),
+        default="baseline",
+        help="Workflow variant: baseline, single-harness, full workflow, or leave-one-out ablation",
+    )
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--output", default="phase4_evaluation/results/trackb")
@@ -77,6 +141,7 @@ def main() -> None:
     if args.max_cases > 0:
         cases = cases[: args.max_cases]
     flags = _mode_to_flags(args.mode)
+    variant_summary = _build_variant_summary(args.mode, flags)
 
     run_rows = []
     scored = []
@@ -91,10 +156,17 @@ def main() -> None:
             **flags,
         )
         row = workflow_result_to_dict(wf)
+        row["variant"] = variant_summary
         run_rows.append(row)
         scored.append(score_case(case, row))
 
     metrics = aggregate_scores(scored)
+    metrics["variant"] = variant_summary
+    metrics["report_path"] = report_path
+    metrics["cases_path"] = cases_path
+    metrics["model"] = args.model
+    metrics["temperature"] = args.temperature
+    metrics["cases_run"] = len(cases)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     out_dir = os.path.join(args.output, f"{args.mode}_{stamp}")
@@ -106,8 +178,12 @@ def main() -> None:
     with open(os.path.join(out_dir, "metrics.json"), "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
 
+    with open(os.path.join(out_dir, "variant.json"), "w", encoding="utf-8") as f:
+        json.dump(variant_summary, f, indent=2, ensure_ascii=False)
+
     print("Report:", report_path)
     print("Cases:", cases_path)
+    print("Variant:", json.dumps(variant_summary, ensure_ascii=False))
     print("Saved run:", out_dir)
     print(json.dumps(metrics, indent=2, ensure_ascii=False))
 

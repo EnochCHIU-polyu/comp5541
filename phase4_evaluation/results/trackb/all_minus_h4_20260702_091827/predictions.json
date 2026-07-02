@@ -1,0 +1,39 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What is total revenue for Q1 2026? Return value and unit.",
+    "answer": "Cannot determine",
+    "citations": [
+      "No evidence provided about revenue for Q1 2026"
+    ],
+    "raw_response": "ANSWER: Cannot determine  \nCITATIONS: No evidence provided about revenue for Q1 2026",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": true,
+        "pred_value": null,
+        "expected_value": 109.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "all_minus_h4",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": true
+    }
+  }
+]

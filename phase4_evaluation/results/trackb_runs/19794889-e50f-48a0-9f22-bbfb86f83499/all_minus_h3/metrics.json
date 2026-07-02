@@ -1,0 +1,32 @@
+{
+  "total_cases": 1,
+  "overall_accuracy": 0.0,
+  "numeric_accuracy": 0.0,
+  "citation_rate": 1.0,
+  "error_counts": {
+    "E1": 0,
+    "E2": 1,
+    "E3": 1,
+    "E4": 0,
+    "E5": 0
+  },
+  "variant": {
+    "variant_name": "all_minus_h3",
+    "enabled_harnesses": [
+      "use_h1_retrieval",
+      "use_h2_numeric_guard",
+      "use_h4_verifier"
+    ],
+    "disabled_harnesses": [
+      "use_h3_chronology_guard"
+    ],
+    "is_baseline": false,
+    "is_full_workflow": false,
+    "is_leave_one_out_ablation": true
+  },
+  "report_path": "data/2026q1-alphabet-earnings-release.md",
+  "cases_path": "data/trackb_eval_cases.jsonl",
+  "model": "deepseek-v3.2",
+  "temperature": 0.0,
+  "cases_run": 1
+}

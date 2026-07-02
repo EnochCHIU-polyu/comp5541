@@ -3,6 +3,17 @@ import { API_BASE } from "../../../lib/apiConfig";
 export type BenchmarkDataset = "smartbugs" | "solidifi";
 export type BenchmarkMode = "binary" | "non_binary" | "cot";
 export type BenchmarkPipeline = "standard" | "cascade" | "multi_llm";
+export type TrackBProfile =
+  | "baseline"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "all"
+  | "all_minus_h1"
+  | "all_minus_h2"
+  | "all_minus_h3"
+  | "all_minus_h4";
 
 export interface BenchmarkContractPreview {
   name: string;
@@ -68,6 +79,85 @@ export interface BenchmarkLlmCheckResponse {
   latency_ms: number | null;
   preview: string;
   error: string | null;
+}
+
+export interface TrackBRunCreateRequest {
+  report_path: string;
+  cases_path: string;
+  model: string;
+  temperature: number;
+  max_cases: number;
+  profiles: TrackBProfile[];
+}
+
+export interface TrackBRunCreateResponse {
+  run_id: string;
+  status: string;
+  created_at: string;
+  profiles: TrackBProfile[];
+  links: Record<string, string>;
+}
+
+export interface TrackBProfileProgress {
+  profile: TrackBProfile;
+  status: "queued" | "running" | "scoring" | "completed" | "failed";
+  cases_total: number;
+  cases_completed: number;
+}
+
+export interface TrackBRunStatusResponse {
+  run_id: string;
+  status: "queued" | "running" | "scoring" | "completed" | "failed";
+  stage: "queued" | "running" | "scoring" | "completed" | "failed";
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  report_path: string;
+  cases_path: string;
+  model: string;
+  temperature: number;
+  max_cases: number;
+  profiles: TrackBProfile[];
+  progress: TrackBProfileProgress[];
+  error: string | null;
+}
+
+export interface TrackBMetricsResponse {
+  run_id: string;
+  metrics_by_profile: Record<string, Record<string, unknown>>;
+}
+
+export interface TrackBArtifactsResponse {
+  run_id: string;
+  output_dir: string;
+  artifacts: Array<{
+    profile: string;
+    name: string;
+    path: string;
+    bytes: number;
+  }>;
+}
+
+export interface TrackBComparisonResponse {
+  run_id: string;
+  baseline_profile: TrackBProfile;
+  rows: Array<Record<string, unknown>>;
+  loo_impact: Array<Record<string, unknown>>;
+}
+
+export interface TrackBReproduceResponse {
+  run_id: string;
+  commands: Record<string, string>;
+  config: Record<string, unknown>;
+}
+
+export interface TrackBEvent {
+  run_id: string;
+  event: string;
+  stage: string;
+  seq: number;
+  ts: string;
+  payload: Record<string, unknown>;
 }
 
 export async function checkBackendHealth(): Promise<{ status: string }> {
@@ -162,4 +252,132 @@ export async function runBenchmark(
     throw new Error(`Run benchmark failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<BenchmarkRunResponse>;
+}
+
+export async function createTrackBRun(
+  payload: TrackBRunCreateRequest,
+): Promise<TrackBRunCreateResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/runs`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Create Track B run failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBRunCreateResponse>;
+}
+
+export async function createTrackBUploadRun(params: {
+  reportFile: File;
+  casesFile: File;
+  model: string;
+  temperature: number;
+  maxCases: number;
+  profiles: TrackBProfile[];
+}): Promise<TrackBRunCreateResponse> {
+  const formData = new FormData();
+  formData.append("report_file", params.reportFile);
+  formData.append("cases_file", params.casesFile);
+  formData.append("model", params.model);
+  formData.append("temperature", String(params.temperature));
+  formData.append("max_cases", String(params.maxCases));
+  formData.append("profiles", JSON.stringify(params.profiles));
+
+  const res = await fetch(`${API_BASE}/api/v1/trackb/runs/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Create Track B upload run failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBRunCreateResponse>;
+}
+
+export async function getTrackBRunStatus(
+  runId: string,
+): Promise<TrackBRunStatusResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B run status failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBRunStatusResponse>;
+}
+
+export async function getTrackBMetrics(
+  runId: string,
+): Promise<TrackBMetricsResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/metrics`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B metrics failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBMetricsResponse>;
+}
+
+export async function getTrackBArtifacts(
+  runId: string,
+): Promise<TrackBArtifactsResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/artifacts`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B artifacts failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBArtifactsResponse>;
+}
+
+export async function getTrackBComparison(
+  runId: string,
+  baselineProfile: TrackBProfile,
+): Promise<TrackBComparisonResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/compare`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ run_id: runId, baseline_profile: baselineProfile }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B comparison failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBComparisonResponse>;
+}
+
+export async function getTrackBReproduce(
+  runId: string,
+): Promise<TrackBReproduceResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/reproduce`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B reproduce failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBReproduceResponse>;
+}
+
+export function streamTrackBRunEvents(
+  runId: string,
+  onEvent: (evt: TrackBEvent) => void,
+): EventSource {
+  const source = new EventSource(`${API_BASE}/api/v1/trackb/runs/${runId}/stream`);
+  const handler = (event: MessageEvent<string>) => {
+    try {
+      const payload = JSON.parse(event.data) as TrackBEvent;
+      onEvent(payload);
+    } catch {
+      // Ignore malformed heartbeat payloads.
+    }
+  };
+
+  source.addEventListener("trackb_started", handler);
+  source.addEventListener("trackb_profile_started", handler);
+  source.addEventListener("trackb_case_progress", handler);
+  source.addEventListener("trackb_profile_completed", handler);
+  source.addEventListener("trackb_scoring_done", handler);
+  source.addEventListener("trackb_completed", handler);
+  source.addEventListener("trackb_failed", handler);
+  source.addEventListener("ping", handler);
+
+  return source;
 }

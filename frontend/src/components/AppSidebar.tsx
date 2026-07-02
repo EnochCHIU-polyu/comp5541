@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { to: "/", label: "Workspace" },
+  { to: "/trackb", label: "Track B Workflow" },
 ];
 
 function linkClass(active: boolean): string {
@@ -47,15 +47,6 @@ export function AppSidebar({ onCollapse }: AppSidebarProps) {
             {item.label}
           </NavLink>
         ))}
-        <a className="aw-side-link" href="#draft-notes">
-          Notes Draft
-        </a>
-        <a className="aw-side-link" href="#learning-plan">
-          Learning Plan
-        </a>
-        <a className="aw-side-link" href="#reminders">
-          Reminders
-        </a>
       </nav>
     </aside>
   );

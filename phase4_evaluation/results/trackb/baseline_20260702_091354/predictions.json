@@ -1,0 +1,37 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What is total revenue for Q1 2026? Return value and unit.",
+    "answer": "5,014,640 (RMB thousand)",
+    "citations": [
+      "\"2025年度，本集團實現總收入人民幣5,014.6百萬元\"",
+      "\"| 收入     | 5,014,640   | 100.0\""
+    ],
+    "raw_response": "ANSWER: 5,014,640 (RMB thousand)\nCITATIONS: \"2025年度，本集團實現總收入人民幣5,014.6百萬元\"; \"| 收入     | 5,014,640   | 100.0\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]
