@@ -21,11 +21,16 @@ def _env_bool(name: str, default: bool = False) -> bool:
 
 # ── API Keys ────────────────────────────────────────────────────────────────
 POE_API_KEY: str = os.getenv("POE_API_KEY", "")
-OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "") or POE_API_KEY
+DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
+OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "") or DEEPSEEK_API_KEY or POE_API_KEY
 OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "")  # e.g. https://api.poe.com/v1 for Poe
 ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 GITHUB_TOKEN: str = os.getenv("GITHUB_TOKEN", "")
 ETHERSCAN_API_KEY: str = os.getenv("ETHERSCAN_API_KEY", "")
+
+# ── DeepSeek-Compatible Settings ─────────────────────────────────────────────
+DEEPSEEK_REASONING_EFFORT: str = os.getenv("DEEPSEEK_REASONING_EFFORT", "").strip()
+DEEPSEEK_THINKING_ENABLED: bool = _env_bool("DEEPSEEK_THINKING_ENABLED", False)
 
 # ── LLM Settings ─────────────────────────────────────────────────────────────
 DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "deepseek-v3.2")

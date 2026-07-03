@@ -14,6 +14,10 @@ from typing import Any
 
 from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
 from phase2_llm_engine.llm_client import query_llm
+from phase2_llm_engine.trackb_harnesses.h1_retrieval import build_retrieval_context, retrieve_chunks
+from phase2_llm_engine.trackb_harnesses.h2_numeric_guard import build_numeric_hint, numeric_guard
+from phase2_llm_engine.trackb_harnesses.h3_chronology_guard import chronology_guard
+from phase2_llm_engine.trackb_harnesses.h4_verifier import verify_support
 
 _NUM_RE = re.compile(r"[-+]?\d{1,3}(?:,\d{3})*(?:\.\d+)?%?|[-+]?\d+(?:\.\d+)?%?")
 _SENT_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
@@ -107,13 +111,14 @@ def _chronology_guard(answer: str, case: FinancialEvalCase, report_text: str) ->
     return positions == sorted(positions)
 
 
-def _build_prompt(question: str, context: str) -> list[dict[str, str]]:
+def _build_prompt(question: str, context: str, hint_block: str = "") -> list[dict[str, str]]:
     return [
         {
             "role": "system",
             "content": (
                 "You are a financial audit assistant. "
-                "Answer in English. Provide concise answer and evidence lines."
+                "Answer in English. Provide concise answer and evidence lines. "
+                "Prefer the exact table row or disclosure line that matches the question, not a rounded headline summary."
             ),
         },
         {
@@ -121,6 +126,7 @@ def _build_prompt(question: str, context: str) -> list[dict[str, str]]:
             "content": (
                 "Question:\n"
                 f"{question}\n\n"
+                f"{hint_block + '\n\n' if hint_block else ''}"
                 "Context:\n"
                 f"{context}\n\n"
                 "Return exactly in this format:\n"
@@ -135,12 +141,23 @@ def _parse_answer(raw: str) -> tuple[str, list[str]]:
     answer = ""
     citations: list[str] = []
     for line in raw.splitlines():
-        low = line.lower().strip()
+        stripped = line.strip()
+        low = stripped.lower()
         if low.startswith("answer:"):
-            answer = line.split(":", 1)[1].strip()
+            answer = stripped.split(":", 1)[1].strip()
         if low.startswith("citations:"):
-            chunk = line.split(":", 1)[1].strip()
+            chunk = stripped.split(":", 1)[1].strip()
             citations = [c.strip() for c in chunk.split(";") if c.strip()]
+
+    if not answer:
+        m = re.search(r"(?im)^\s*(?:\*\*)?answer(?:\*\*)?\s*:\s*(.+)$", raw)
+        if m:
+            answer = m.group(1).strip()
+    if not citations:
+        m = re.search(r"(?im)^\s*(?:\*\*)?citations(?:\*\*)?\s*:\s*(.+)$", raw)
+        if m:
+            citations = [c.strip() for c in m.group(1).split(";") if c.strip()]
+
     if not answer:
         answer = _normalize_ws(raw)
     return answer, citations
@@ -168,13 +185,27 @@ def run_financial_workflow(
     use_h4_verifier: bool = False,
 ) -> FinancialWorkflowResult:
     if use_h1_retrieval:
-        chunks = _retrieve_chunks(report_text, case.question, top_k=6)
-        context = "\n".join(chunks)
+        chunks, context = build_retrieval_context(
+            report_text,
+            case.question,
+            top_k=6,
+            evidence_keywords=case.evidence_keywords,
+        )
     else:
         chunks = []
         context = report_text
 
-    messages = _build_prompt(case.question, context)
+    hint_blocks: list[str] = []
+    if case.evidence_keywords:
+        hint_blocks.append(f"Evidence keywords: {', '.join(case.evidence_keywords)}")
+    if case.expected_unit:
+        hint_blocks.append(f"Expected answer unit: {case.expected_unit}")
+    if use_h2_numeric_guard:
+        numeric_hint = build_numeric_hint(report_text, case, top_k=3)
+        if numeric_hint:
+            hint_blocks.append(numeric_hint)
+
+    messages = _build_prompt(case.question, context, hint_block="\n\n".join(hint_blocks))
     raw = query_llm(messages, model=model, temperature=temperature)
     answer, citations = _parse_answer(raw)
 
@@ -183,28 +214,63 @@ def run_financial_workflow(
     }
 
     if use_h2_numeric_guard:
-        diagnostics["numeric"] = _numeric_guard(answer, case)
+        diagnostics["numeric"] = numeric_guard(answer, case)
     else:
         diagnostics["numeric"] = {"numeric_match": None, "unit_warning": False}
 
     if use_h3_chronology_guard:
-        diagnostics["chronology_ok"] = _chronology_guard(answer, case, report_text)
+        diagnostics["chronology_ok"] = chronology_guard(answer, case, report_text)
     else:
         diagnostics["chronology_ok"] = None
 
     if use_h4_verifier:
-        supported = True
-        if citations:
-            low_report = report_text.lower()
-            for c in citations:
-                snippet = c.strip().strip('"').lower()
-                if snippet and snippet not in low_report:
-                    supported = False
-                    break
-        diagnostics["verification"] = {
-            "applied": True,
-            "verified": supported,
-        }
+        initial_verification = verify_support(
+            answer,
+            citations,
+            report_text,
+            evidence_keywords=case.evidence_keywords,
+            expected_unit=case.expected_unit,
+        )
+        diagnostics["verification"] = initial_verification
+        if not initial_verification.get("verified", False):
+            revision_context = context
+            revision_prompt = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a skeptical financial reviewer. The previous answer was likely off by scale, unit, or by choosing a headline figure instead of the exact table value. "
+                        "Revise only if you can support the answer directly from the provided evidence."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Question:\n{case.question}\n\n"
+                        f"Evidence keywords: {', '.join(case.evidence_keywords or [])}\n"
+                        f"Expected unit: {case.expected_unit}\n\n"
+                        f"Previous answer:\n{answer}\n\n"
+                        f"Evidence context:\n{revision_context}\n\n"
+                        "Return exactly in this format:\n"
+                        "ANSWER: <short answer>\n"
+                        "CITATIONS: <semicolon-separated quoted evidence snippets>"
+                    ),
+                },
+            ]
+            revise_raw = query_llm(revision_prompt, model=model, temperature=temperature)
+            revised_answer, revised_citations = _parse_answer(revise_raw)
+            answer = revised_answer or answer
+            if revised_citations:
+                citations = revised_citations
+            revised_verification = verify_support(
+                answer,
+                citations,
+                report_text,
+                evidence_keywords=case.evidence_keywords,
+                expected_unit=case.expected_unit,
+            )
+            revised_verification["revision_applied"] = True
+            revised_verification["initial_reason"] = initial_verification.get("reason", "")
+            diagnostics["verification"] = revised_verification
     else:
         diagnostics["verification"] = {
             "applied": False,

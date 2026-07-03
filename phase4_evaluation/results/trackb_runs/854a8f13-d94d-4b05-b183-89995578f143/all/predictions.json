@@ -1,0 +1,40 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What is total revenue for Q1 2026? Return value and unit.",
+    "answer": "109,896 USD millions",
+    "citations": [
+      "[Evidence] Total revenues $ 90,234 $ 109,896 ... (1) Total constant currency revenues of $109.4 billion for the quarter ended March 31, 2026 decreased $4.5 billion compared to $113.9 billion"
+    ],
+    "raw_response": "ANSWER: 109,896 USD millions\nCITATIONS: \"Total revenues $ 90,234 $ 109,896\"; \"Hedging gains (losses) (68) (180) Total revenues $ 113,828 $ 109,896 $ 109,426 (3) % 0 % 1 % (4) % (1) Total constant currency revenues of $109.4 billion for the quarter ended March 31, 2026\"",
+    "diagnostics": {
+      "retrieved_chunks": 8,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 109896.0,
+        "expected_value": 109896.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "citation not found in report",
+        "revision_applied": true
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

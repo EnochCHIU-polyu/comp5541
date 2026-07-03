@@ -16,7 +16,8 @@ import {
   type TrackBRunStatusResponse,
 } from "../features/benchmark/services/benchmarkApi";
 
-const HARNESS_PROFILES: TrackBProfile[] = [
+const PROFILE_BUTTONS: TrackBProfile[] = [
+  "baseline",
   "h1",
   "h2",
   "h3",
@@ -24,10 +25,38 @@ const HARNESS_PROFILES: TrackBProfile[] = [
   "all",
 ];
 
-const DEFAULT_PROFILES: TrackBProfile[] = [];
+const DEFAULT_PROFILES: TrackBProfile[] = ["baseline"];
+
+const ERROR_TAXONOMY = [
+  {
+    code: "E1",
+    title: "Context miss",
+    description: "The answer was produced without enough relevant report context.",
+  },
+  {
+    code: "E2",
+    title: "Unit mismatch",
+    description: "The answer used the wrong scale or missed the report's unit convention.",
+  },
+  {
+    code: "E3",
+    title: "Arithmetic error",
+    description: "The answer failed a deterministic numeric or tolerance check.",
+  },
+  {
+    code: "E4",
+    title: "Chronology mix-up",
+    description: "The answer confused event ordering or time-specific disclosures.",
+  },
+  {
+    code: "E5",
+    title: "Unsupported claim",
+    description: "The claim was not backed by the cited evidence snippets.",
+  },
+];
 
 export function TrackBPage() {
-  const [model, setModel] = useState("deepseek-v3.2");
+  const [model, setModel] = useState("deepseek-v4-flash");
   const [temperature, setTemperature] = useState(0);
   const [maxCases, setMaxCases] = useState(0);
   const [profiles, setProfiles] = useState<TrackBProfile[]>(DEFAULT_PROFILES);
@@ -99,10 +128,8 @@ export function TrackBPage() {
     };
   }, [runId]);
 
-  const selectedProfilesLabel = useMemo(
-    () => ["baseline", ...profiles].join(", "),
-    [profiles],
-  );
+  const selectedProfilesLabel = useMemo(() => profiles.join(", "), [profiles]);
+  const artifactProfiles = artifacts?.profiles ?? [];
 
   const reportLabel = reportFile ? `${reportFile.name} (${Math.round(reportFile.size / 1024)} KB)` : "Choose a PDF or markdown report";
   const casesLabel = casesFile ? `${casesFile.name} (${Math.round(casesFile.size / 1024)} KB)` : "Choose the Track B cases file";
@@ -125,11 +152,26 @@ export function TrackBPage() {
   };
 
   const onToggleProfile = (profile: TrackBProfile) => {
-    setProfiles((prev) =>
-      prev.includes(profile)
-        ? prev.filter((p) => p !== profile)
-        : [...prev, profile],
-    );
+    setProfiles((prev) => {
+      const has = prev.includes(profile);
+
+      if (profile === "all") {
+        return has ? ["baseline"] : ["all"];
+      }
+
+      if (profile === "baseline") {
+        return has ? ["baseline"] : ["baseline"];
+      }
+
+      let next = prev.filter((p) => p !== "baseline" && p !== "all");
+      if (has) {
+        next = next.filter((p) => p !== profile);
+      } else {
+        next = [...next, profile];
+      }
+
+      return next.length > 0 ? next : ["baseline"];
+    });
   };
 
   const onSelectPreset = (preset: "minimal" | "full" | "loo") => {
@@ -137,7 +179,7 @@ export function TrackBPage() {
       setProfiles(["h1", "h2", "h3", "h4"]);
       return;
     }
-    setProfiles(["h1", "h2", "h3", "h4", "all"]);
+    setProfiles(["all"]);
   };
 
   const onLaunch = async () => {
@@ -286,12 +328,12 @@ export function TrackBPage() {
                 className="aw-chip"
                 onClick={() => onSelectPreset("full")}
               >
-                Preset: H1-H4 + All
+                Preset: All only
               </button>
             </div>
 
             <div className="grid gap-2 md:grid-cols-3">
-              {HARNESS_PROFILES.map((profile) => {
+              {PROFILE_BUTTONS.map((profile) => {
                 const selected = profiles.includes(profile);
                 return (
                   <button
@@ -306,14 +348,14 @@ export function TrackBPage() {
               })}
             </div>
             <p className="aw-subtle text-xs">
-              Baseline is fixed for comparison. Selected profiles: {selectedProfilesLabel || "baseline"}
+              Selected profiles: {selectedProfilesLabel || "baseline"}
             </p>
           </div>
 
           <button
             type="button"
             className="aw-button w-auto px-5"
-            disabled={isLaunching || profiles.length === 0 || !reportFile || !casesFile}
+            disabled={isLaunching || !reportFile || !casesFile}
             onClick={onLaunch}
           >
             {isLaunching ? "Launching run..." : "Launch Track B Run"}
@@ -372,22 +414,27 @@ export function TrackBPage() {
 
         <section className="grid gap-4 md:grid-cols-2">
           <div className="aw-card space-y-3">
-            <h2 className="aw-title text-lg font-semibold">Error Taxonomy (E1-E5)</h2>
+            <h2 className="aw-title text-lg font-semibold">Error Taxonomy</h2>
             {!metrics ? (
               <p className="aw-subtle text-sm">Metrics appear after completion.</p>
             ) : (
-              <div className="space-y-2">
-                {Object.entries(metrics.metrics_by_profile).map(([profile, m]) => {
-                  const ec = (m.error_counts ?? {}) as Record<string, number>;
-                  return (
-                    <div key={profile} className="rounded-md border border-slate-200 p-3">
-                      <p className="text-sm font-semibold">{profile === "baseline" ? "baseline (V0)" : profile}</p>
-                      <p className="aw-subtle text-xs">
-                        E1 {ec.E1 ?? 0} | E2 {ec.E2 ?? 0} | E3 {ec.E3 ?? 0} | E4 {ec.E4 ?? 0} | E5 {ec.E5 ?? 0}
-                      </p>
-                    </div>
-                  );
-                })}
+              <div className="grid gap-3">
+                {ERROR_TAXONOMY.map((item) => (
+                  <div key={item.code} className="rounded-md border border-slate-200 p-3">
+                    <p className="text-sm font-semibold">
+                      {item.code}: {item.title}
+                    </p>
+                    <p className="aw-subtle mt-1 text-xs">{item.description}</p>
+                    <p className="aw-subtle mt-2 text-xs">
+                      {(() => {
+                        const ec = Object.entries(metrics.metrics_by_profile)
+                          .flatMap(([, m]) => [((m.error_counts ?? {}) as Record<string, number>)[item.code] ?? 0])
+                          .reduce((sum, value) => sum + value, 0);
+                        return `Count across profiles: ${ec}`;
+                      })()}
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -421,7 +468,43 @@ export function TrackBPage() {
           ) : (
             <>
               <p className="aw-subtle text-xs">Output dir: {artifacts.output_dir}</p>
-              <div className="max-h-60 overflow-auto">
+              <div className="grid gap-3 md:grid-cols-2">
+                {artifactProfiles.map((profileSummary) => (
+                  <div key={profileSummary.profile} className="rounded-xl border border-slate-200 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold">
+                        {profileSummary.profile === "baseline" ? "baseline (V0)" : profileSummary.profile}
+                      </p>
+                      <span className="aw-chip aw-chip-accent">
+                        wrong cases: {profileSummary.wrong_case_count}
+                      </span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                      <div className="rounded-md bg-slate-50 p-2">overall {(Number(profileSummary.overall_accuracy) * 100).toFixed(1)}%</div>
+                      <div className="rounded-md bg-slate-50 p-2">numeric {(Number(profileSummary.numeric_accuracy) * 100).toFixed(1)}%</div>
+                      <div className="rounded-md bg-slate-50 p-2">citations {(Number(profileSummary.citation_rate) * 100).toFixed(1)}%</div>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Wrong cases</p>
+                      {profileSummary.wrong_cases.length === 0 ? (
+                        <p className="aw-subtle text-xs">No wrong cases in the preview.</p>
+                      ) : (
+                        profileSummary.wrong_cases.map((caseItem) => (
+                          <div key={caseItem.case_id} className="rounded-md border border-slate-200 p-2 text-xs">
+                            <p className="font-semibold">{caseItem.case_id}</p>
+                            <p className="aw-subtle mt-1">{caseItem.question}</p>
+                            <p className="mt-1">Answer: {caseItem.answer || "(empty)"}</p>
+                            <p className="aw-subtle mt-1">Expected: {caseItem.expected_answer}</p>
+                            <p className="aw-subtle mt-1">Errors: {caseItem.error_codes.join(", ") || "none"}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="max-h-56 overflow-auto rounded-md border border-slate-200 p-3">
                 <table className="min-w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 text-left">

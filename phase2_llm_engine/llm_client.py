@@ -17,6 +17,8 @@ from typing import Optional
 from config import (
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
+    DEEPSEEK_REASONING_EFFORT,
+    DEEPSEEK_THINKING_ENABLED,
     ANTHROPIC_API_KEY,
     GITHUB_TOKEN,
     DEFAULT_MODEL,
@@ -261,11 +263,20 @@ def _query_openai(
 ) -> str:
     logger.info("Sending request to OpenAI Chat Completions (model=%s)", model)
     client = _get_openai_client()
+    request_kwargs = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if OPENAI_BASE_URL and "api.deepseek.com" in OPENAI_BASE_URL.lower():
+        if DEEPSEEK_REASONING_EFFORT:
+            request_kwargs["reasoning_effort"] = DEEPSEEK_REASONING_EFFORT
+        if DEEPSEEK_THINKING_ENABLED:
+            request_kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
+
     response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        max_tokens=max_tokens,
+        **request_kwargs,
     )
     logger.info("Received response from OpenAI (model=%s)", model)
     text = response.choices[0].message.content or ""

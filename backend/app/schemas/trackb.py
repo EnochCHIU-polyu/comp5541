@@ -94,11 +94,16 @@ class TrackBArtifactsResponse(BaseModel):
     run_id: str
     output_dir: str
     artifacts: List[Dict[str, Any]] = Field(default_factory=list)
+    profiles: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class TrackBMetricsResponse(BaseModel):
     run_id: str
     metrics_by_profile: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+
+
+class TrackBHistoryResponse(BaseModel):
+    runs: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class TrackBComparisonRequest(BaseModel):

@@ -1,0 +1,184 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What is total revenue for Q1 2026? Return value and unit.",
+    "answer": "$107.1 billion",
+    "citations": [
+      "\"Total constant currency revenues of $107.1 billion for the quarter ended March 31, 2026 increased $17.1 billion compared to $90.0 billion\""
+    ],
+    "raw_response": "ANSWER: $107.1 billion  \nCITATIONS: \"Total constant currency revenues of $107.1 billion for the quarter ended March 31, 2026 increased $17.1 billion compared to $90.0 billion\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": true,
+        "pred_value": 107.1,
+        "expected_value": 109.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": true
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What is total revenue for Q1 2025? Return value and unit.",
+    "answer": "$90.0 billion",
+    "citations": [
+      "\"Total constant currency revenues of $107.1 billion for the quarter ended March 31, 2026 increased $17.1 billion compared to $90.0 billion in revenues, excluding hedging effect, for the quarter ended March 31, 2025.\""
+    ],
+    "raw_response": "ANSWER: $90.0 billion  \nCITATIONS: \"Total constant currency revenues of $107.1 billion for the quarter ended March 31, 2026 increased $17.1 billion compared to $90.0 billion in revenues, excluding hedging effect, for the quarter ended March 31, 2025.\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": true,
+        "pred_value": 90.0,
+        "expected_value": 902.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What is the year-over-year revenue growth rate reported for Q1 2026? Return percentage.",
+    "answer": "19.0%",
+    "citations": [
+      "\"Total constant currency revenues of $107.1 billion for the quarter ended March 31, 2026 increased $17.1 billion compared to $90.0 billion\""
+    ],
+    "raw_response": "ANSWER: 19.0%\nCITATIONS: \"Total constant currency revenues of $107.1 billion for the quarter ended March 31, 2026 increased $17.1 billion compared to $90.0 billion\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 0.19,
+        "expected_value": 0.22
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": true
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026?",
+    "answer": "$39,696 million",
+    "citations": [
+      "\"Operating income $ 30,606 $ 39,696\"",
+      "\"The following table summarizes our consolidated financial results for the quarter ended March 31, 2025 and 2026\""
+    ],
+    "raw_response": "ANSWER: $39,696 million\n\nCITATIONS: \"Operating income $ 30,606 $ 39,696\"; \"The following table summarizes our consolidated financial results for the quarter ended March 31, 2025 and 2026\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": true,
+        "pred_value": 39696.0,
+        "expected_value": 396.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "36%",
+    "citations": [
+      "\"Operating margin 34 % 36 %\"",
+      "\"Alphabet Announces First Quarter 2026 Results – April 29, 2026\""
+    ],
+    "raw_response": "ANSWER: 36%\nCITATIONS: \"Operating margin 34 % 36 %\"; \"Alphabet Announces First Quarter 2026 Results – April 29, 2026\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.36,
+        "expected_value": 0.36
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

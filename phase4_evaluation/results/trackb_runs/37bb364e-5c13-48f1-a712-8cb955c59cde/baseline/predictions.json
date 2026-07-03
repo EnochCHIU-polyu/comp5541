@@ -1,0 +1,692 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What is total revenue for Q1 2026? Return value and unit.",
+    "answer": "109,896 USD millions",
+    "citations": [
+      "\"Quarter Ended March 31, 2025 2026 Revenues $ 90,234 $ 109,896\"",
+      "\"Total revenues $ 90,234 $ 109,896\""
+    ],
+    "raw_response": "ANSWER: 109,896 USD millions\nCITATIONS: \"Quarter Ended March 31, 2025 2026 Revenues $ 90,234 $ 109,896\"; \"Total revenues $ 90,234 $ 109,896\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What is total revenue for Q1 2025? Return value and unit.",
+    "answer": "$90,234 million",
+    "citations": [
+      "\"Quarter Ended March 31, 2025 ... 2025 2026 Revenues $ 90,234 $ 109,896\""
+    ],
+    "raw_response": "ANSWER: $90,234 million\nCITATIONS: \"Quarter Ended March 31, 2025 ... 2025 2026 Revenues $ 90,234 $ 109,896\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What is the year-over-year revenue growth rate reported for Q1 2026? Return percentage.",
+    "answer": "22%",
+    "citations": [
+      "\"Change in revenues year over year  12 %  22 %\""
+    ],
+    "raw_response": "ANSWER: 22%\nCITATIONS: \"Change in revenues year over year  12 %  22 %\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026?",
+    "answer": "39696",
+    "citations": [
+      "Operating income $ 30,606 $ 39,696",
+      "Total income from operations $ 30,606 $ 39,696"
+    ],
+    "raw_response": "ANSWER: 39696\nCITATIONS: Operating income $ 30,606 $ 39,696; Total income from operations $ 30,606 $ 39,696",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "36%",
+    "citations": [
+      "\"Operating margin  36 %\" from the financial highlights table on page 1",
+      "\"Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\" on page 1."
+    ],
+    "raw_response": "ANSWER: 36%\nCITATIONS: \"Operating margin  36 %\" from the financial highlights table on page 1; \"Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\" on page 1.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C06",
+    "question": "What was other income (expense), net in Q1 2026?",
+    "answer": "37,716",
+    "citations": [
+      "\"Other income (expense), net $ 11,183 $ 37,716\" (Page 1, financial highlights table)",
+      "\"Other income (expense), net 11,183 37,716\" (Page 5, Consolidated Statements of Income)",
+      "\"Other income (expense), net $ 11,183 $ 37,716\" (Page 8, detailed table)"
+    ],
+    "raw_response": "ANSWER: 37,716\nCITATIONS: \"Other income (expense), net $ 11,183 $ 37,716\" (Page 1, financial highlights table); \"Other income (expense), net 11,183 37,716\" (Page 5, Consolidated Statements of Income); \"Other income (expense), net $ 11,183 $ 37,716\" (Page 8, detailed table)",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C07",
+    "question": "What was net income in Q1 2026?",
+    "answer": "62,578",
+    "citations": [
+      "Net income $ 34,540 $ 62,578 (Page 1, Q1 2026 Financial Highlights table)",
+      "Net income $ 34,540 $ 62,578 (Page 5, Consolidated Statements of Income)"
+    ],
+    "raw_response": "ANSWER: 62,578\nCITATIONS: Net income $ 34,540 $ 62,578 (Page 1, Q1 2026 Financial Highlights table); Net income $ 34,540 $ 62,578 (Page 5, Consolidated Statements of Income)",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C08",
+    "question": "What was diluted EPS in Q1 2026?",
+    "answer": "5.11",
+    "citations": [
+      "\"Diluted net income per share $ 2.81 $ 5.11\"",
+      "\"Net income increased 81% and EPS increased 82% to $5.11.\""
+    ],
+    "raw_response": "ANSWER: 5.11\nCITATIONS: \"Diluted net income per share $ 2.81 $ 5.11\"; \"Net income increased 81% and EPS increased 82% to $5.11.\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C09",
+    "question": "What was Google Services revenue in Q1 2026?",
+    "answer": "89,637",
+    "citations": [
+      "\"Google Services total  77,264  89,637\"",
+      "\"Google Services $ 77,264 $ 89,637\""
+    ],
+    "raw_response": "ANSWER: 89,637\nCITATIONS: \"Google Services total  77,264  89,637\"; \"Google Services $ 77,264 $ 89,637\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C10",
+    "question": "What was Google Cloud revenue in Q1 2026?",
+    "answer": "20028",
+    "citations": [
+      "\"Google Cloud  12,260  20,028\" in the Q1 2026 Supplemental Information table on page 2."
+    ],
+    "raw_response": "ANSWER: 20028\nCITATIONS: \"Google Cloud  12,260  20,028\" in the Q1 2026 Supplemental Information table on page 2.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C11",
+    "question": "What was Google Cloud operating income in Q1 2026?",
+    "answer": "6,598",
+    "citations": [
+      "\"Google Cloud  2,177  6,598\""
+    ],
+    "raw_response": "ANSWER: 6,598\nCITATIONS: \"Google Cloud  2,177  6,598\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C12",
+    "question": "What was total TAC in Q1 2026?",
+    "answer": "15,228",
+    "citations": [
+      "\"Total TAC $ 13,748 $ 15,228\""
+    ],
+    "raw_response": "ANSWER: 15,228\nCITATIONS: \"Total TAC $ 13,748 $ 15,228\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C13",
+    "question": "How many employees did Alphabet report in Q1 2026 supplemental information?",
+    "answer": "194,668 employees",
+    "citations": [
+      "\"Number of employees 185,719 194,668\""
+    ],
+    "raw_response": "ANSWER: 194,668 employees\nCITATIONS: \"Number of employees 185,719 194,668\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C14",
+    "question": "What was cash and cash equivalents at March 31, 2026?",
+    "answer": "38,063",
+    "citations": [
+      "\"Cash and cash equivalents $ 30,708 $ 38,063\" (Page 4, Consolidated Balance Sheets, As of March 31, 2026)",
+      "\"Cash and cash equivalents at end of period $ 23,264 $ 38,063\" (Page 6, Consolidated Statements of Cash Flows, Quarter Ended March 31, 2026)"
+    ],
+    "raw_response": "ANSWER: 38,063\nCITATIONS: \"Cash and cash equivalents $ 30,708 $ 38,063\" (Page 4, Consolidated Balance Sheets, As of March 31, 2026); \"Cash and cash equivalents at end of period $ 23,264 $ 38,063\" (Page 6, Consolidated Statements of Cash Flows, Quarter Ended March 31, 2026)",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C15",
+    "question": "What were net proceeds from issuance of senior unsecured notes in Q1 2026?",
+    "answer": "$31.1 billion",
+    "citations": [
+      "\"In the first quarter of 2026, we issued senior unsecured notes for net proceeds of $31.1 billion, to be used for general corporate purposes.\""
+    ],
+    "raw_response": "ANSWER: $31.1 billion\nCITATIONS: \"In the first quarter of 2026, we issued senior unsecured notes for net proceeds of $31.1 billion, to be used for general corporate purposes.\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C16",
+    "question": "What was free cash flow in Q1 2026?",
+    "answer": "10,116",
+    "citations": [
+      "\"Free cash flow $ 5,301 $ 24,461 $ 24,551 $ 10,116 $ 64,429\""
+    ],
+    "raw_response": "ANSWER: 10,116\nCITATIONS: \"Free cash flow $ 5,301 $ 24,461 $ 24,551 $ 10,116 $ 64,429\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C17",
+    "question": "What was total stockholders' equity at March 31, 2026?",
+    "answer": "478,746",
+    "citations": [
+      "\"Total stockholders’ equity  415,265  478,746\""
+    ],
+    "raw_response": "ANSWER: 478,746\nCITATIONS: \"Total stockholders’ equity  415,265  478,746\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C18",
+    "question": "Did the company report Google Cloud growth acceleration with 63% revenue increase? Answer yes or no.",
+    "answer": "yes",
+    "citations": [
+      "\"Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion\""
+    ],
+    "raw_response": "ANSWER: yes\nCITATIONS: \"Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C19",
+    "question": "What is the quarterly cash dividend per share announced in April 2026?",
+    "answer": "0.22",
+    "citations": [
+      "\"The company announced a 5% increase to the dividend, resulting in a quarterly cash dividend of $0.22.\"",
+      "\"On April 27, 2026, Alphabet’s Board of Directors declared a quarterly cash dividend of $0.22 per share.\""
+    ],
+    "raw_response": "ANSWER: 0.22\nCITATIONS: \"The company announced a 5% increase to the dividend, resulting in a quarterly cash dividend of $0.22.\"; \"On April 27, 2026, Alphabet’s Board of Directors declared a quarterly cash dividend of $0.22 per share.\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C20",
+    "question": "Order these dates chronologically and include the dates: dividend declaration date, record date, dividend payable date.",
+    "answer": "Dividend declaration date: April 27, 2026; record date: June 8, 2026; dividend payable date: June 15, 2026.",
+    "citations": [
+      "\"On April 27, 2026, Alphabet’s Board of Directors declared a quarterly cash dividend of $0.22 per share... The dividend is payable on June 15, 2026 to stockholders of record for each of the Company’s Class A, Class B, and Class C shares as of June 8, 2026.\""
+    ],
+    "raw_response": "ANSWER: Dividend declaration date: April 27, 2026; record date: June 8, 2026; dividend payable date: June 15, 2026.\nCITATIONS: \"On April 27, 2026, Alphabet’s Board of Directors declared a quarterly cash dividend of $0.22 per share... The dividend is payable on June 15, 2026 to stockholders of record for each of the Company’s Class A, Class B, and Class C shares as of June 8, 2026.\"",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

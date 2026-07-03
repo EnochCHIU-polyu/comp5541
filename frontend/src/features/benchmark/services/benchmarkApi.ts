@@ -136,6 +136,56 @@ export interface TrackBArtifactsResponse {
     path: string;
     bytes: number;
   }>;
+  profiles: Array<{
+    profile: string;
+    metrics: Record<string, unknown>;
+    wrong_cases: Array<{
+      case_id: string;
+      question: string;
+      answer: string;
+      expected_answer: string;
+      correct: boolean;
+      numeric_correct: boolean | null;
+      citation_present: boolean;
+      error_codes: string[];
+    }>;
+    wrong_case_count: number;
+    overall_accuracy: number;
+    numeric_accuracy: number;
+    citation_rate: number;
+  }>;
+}
+
+export interface TrackBHistoryResponse {
+  runs: Array<{
+    run_id: string;
+    created_at: string;
+    finished_at: string;
+    status: string;
+    report_path: string;
+    cases_path: string;
+    model: string;
+    temperature: number;
+    profiles: Array<{
+      profile: string;
+      metrics: Record<string, unknown>;
+      wrong_cases: Array<{
+        case_id: string;
+        question: string;
+        answer: string;
+        expected_answer: string;
+        correct: boolean;
+        numeric_correct: boolean | null;
+        citation_present: boolean;
+        error_codes: string[];
+      }>;
+      wrong_case_count: number;
+      overall_accuracy: number;
+      numeric_accuracy: number;
+      citation_rate: number;
+    }>;
+    output_dir: string;
+  }>;
 }
 
 export interface TrackBComparisonResponse {
@@ -327,6 +377,18 @@ export async function getTrackBArtifacts(
     throw new Error(`Get Track B artifacts failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBArtifactsResponse>;
+}
+
+export async function getTrackBHistory(
+  limit = 20,
+): Promise<TrackBHistoryResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  const res = await fetch(`${API_BASE}/api/v1/trackb/history?${params.toString()}`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B history failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBHistoryResponse>;
 }
 
 export async function getTrackBComparison(

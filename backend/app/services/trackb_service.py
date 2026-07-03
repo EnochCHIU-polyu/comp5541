@@ -17,6 +17,7 @@ from app.schemas.trackb import (
     TrackBComparisonRequest,
     TrackBComparisonResponse,
     TrackBEvent,
+    TrackBHistoryResponse,
     TrackBProfile,
     TrackBProfileProgress,
     TrackBReproduceResponse,
@@ -212,6 +213,88 @@ class TrackBService:
             "is_leave_one_out_ablation": str(profile).startswith("all_minus_"),
         }
 
+    def _read_json_file(self, path: Path) -> Dict[str, Any]:
+        if not path.exists():
+            return {}
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            return {}
+
+    def _profile_artifact_summary(self, profile: str, profile_dir: Path, cases_path: str) -> Dict[str, Any]:
+        from phase1_data_pipeline.financial_report_dataset import load_financial_eval_cases
+        from phase4_evaluation.financial_trackb_scorer import score_case
+
+        metrics = self._read_json_file(profile_dir / "metrics.json")
+        predictions = self._read_json_file(profile_dir / "predictions.json")
+        try:
+            cases = {case.case_id: case for case in load_financial_eval_cases(cases_path)}
+        except Exception:  # noqa: BLE001
+            cases = {}
+
+        wrong_cases: List[Dict[str, Any]] = []
+        for row in predictions if isinstance(predictions, list) else []:
+            case_id = str(row.get("case_id", ""))
+            case = cases.get(case_id)
+            if case is None:
+                continue
+            scored = score_case(case, row)
+            if scored.correct:
+                continue
+            wrong_cases.append({
+                "case_id": case_id,
+                "question": case.question,
+                "answer": row.get("answer", ""),
+                "expected_answer": case.expected_answer,
+                "correct": scored.correct,
+                "numeric_correct": scored.numeric_correct,
+                "citation_present": scored.citation_present,
+                "error_codes": scored.error_codes,
+            })
+
+        return {
+            "profile": profile,
+            "metrics": metrics,
+            "wrong_cases": wrong_cases[:5],
+            "wrong_case_count": len(wrong_cases),
+            "overall_accuracy": metrics.get("overall_accuracy", 0.0),
+            "numeric_accuracy": metrics.get("numeric_accuracy", 0.0),
+            "citation_rate": metrics.get("citation_rate", 0.0),
+        }
+
+    def _run_dir_history_entry(self, run_dir: Path) -> Dict[str, Any] | None:
+        profile_dirs = [p for p in run_dir.iterdir() if p.is_dir() and (p / "metrics.json").exists()]
+        if not profile_dirs:
+            return None
+
+        metrics_sample = self._read_json_file(profile_dirs[0] / "metrics.json")
+        report_path = str(metrics_sample.get("report_path", ""))
+        cases_path = str(metrics_sample.get("cases_path", ""))
+        model = str(metrics_sample.get("model", ""))
+        temperature = float(metrics_sample.get("temperature", 0.0) or 0.0)
+        profiles: List[Dict[str, Any]] = []
+
+        for profile_dir in sorted(profile_dirs, key=lambda p: p.name):
+            profile = profile_dir.name
+            profiles.append(self._profile_artifact_summary(profile, profile_dir, cases_path))
+
+        status = "completed"
+        if any(p.get("wrong_case_count", 0) == 0 for p in profiles):
+            status = "completed"
+
+        return {
+            "run_id": run_dir.name,
+            "created_at": datetime.fromtimestamp(run_dir.stat().st_mtime, timezone.utc),
+            "finished_at": datetime.fromtimestamp(run_dir.stat().st_mtime, timezone.utc),
+            "status": status,
+            "report_path": report_path,
+            "cases_path": cases_path,
+            "model": model,
+            "temperature": temperature,
+            "profiles": profiles,
+            "output_dir": str(run_dir),
+        }
+
     async def create_run(self, req: TrackBRunCreateRequest) -> TrackBRunCreateResponse:
         report_path = self._resolve_path(req.report_path)
         cases_path = self._resolve_path(req.cases_path)
@@ -221,8 +304,6 @@ class TrackBService:
             raise ValueError(f"Cases file not found: {cases_path}")
         if not req.profiles:
             raise ValueError("At least one profile must be selected")
-        if "baseline" not in req.profiles:
-            raise ValueError("Baseline profile is required for Track B comparison runs")
         allowed = {"baseline", "h1", "h2", "h3", "h4", "all"}
         invalid = [profile for profile in req.profiles if profile not in allowed]
         if invalid:
@@ -339,14 +420,14 @@ class TrackBService:
                 for idx, case in enumerate(cases, 1):
                     wf = await to_thread(
                         run_financial_workflow,
-                        report_text,
-                        case,
-                        state.model,
-                        state.temperature,
-                        flags["use_h1_retrieval"],
-                        flags["use_h2_numeric_guard"],
-                        flags["use_h3_chronology_guard"],
-                        flags["use_h4_verifier"],
+                        report_text=report_text,
+                        case=case,
+                        model=state.model,
+                        temperature=state.temperature,
+                        use_h1_retrieval=flags["use_h1_retrieval"],
+                        use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                        use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                        use_h4_verifier=flags["use_h4_verifier"],
                     )
                     row = workflow_result_to_dict(wf)
                     row["variant"] = variant
@@ -466,6 +547,7 @@ class TrackBService:
             output_dir = str(self._repo_root() / "phase4_evaluation" / "results" / "trackb_runs" / run_id)
 
             artifacts: List[Dict[str, Any]] = []
+            profiles: List[Dict[str, Any]] = []
             for profile, profile_dir in state.profile_output_dirs.items():
                 for name in ("predictions.json", "metrics.json", "variant.json"):
                     path = Path(profile_dir) / name
@@ -478,8 +560,28 @@ class TrackBService:
                                 "bytes": path.stat().st_size,
                             }
                         )
+                profiles.append(self._profile_artifact_summary(profile, Path(profile_dir), state.cases_path))
 
-            return {"output_dir": output_dir, "artifacts": artifacts}
+            return {"output_dir": output_dir, "artifacts": artifacts, "profiles": profiles}
+
+    def get_history(self, limit: int = 20) -> TrackBHistoryResponse:
+        history_root = self._repo_root() / "phase4_evaluation" / "results" / "trackb_runs"
+        if not history_root.exists():
+            return TrackBHistoryResponse(runs=[])
+
+        run_dirs = [p for p in history_root.iterdir() if p.is_dir()]
+        run_dirs.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+
+        rows: List[Dict[str, Any]] = []
+        for run_dir in run_dirs:
+            entry = self._run_dir_history_entry(run_dir)
+            if entry is None:
+                continue
+            rows.append(entry)
+            if len(rows) >= limit:
+                break
+
+        return TrackBHistoryResponse(runs=rows)
 
     def compare(self, req: TrackBComparisonRequest) -> TrackBComparisonResponse:
         with self._lock:

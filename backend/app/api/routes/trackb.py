@@ -12,6 +12,7 @@ from app.schemas.trackb import (
     TrackBArtifactsResponse,
     TrackBComparisonRequest,
     TrackBComparisonResponse,
+    TrackBHistoryResponse,
     TrackBMetricsResponse,
     TrackBReproduceResponse,
     TrackBRunCreateRequest,
@@ -96,7 +97,12 @@ async def get_trackb_metrics(run_id: str) -> TrackBMetricsResponse:
 async def get_trackb_artifacts(run_id: str) -> TrackBArtifactsResponse:
     try:
         data = trackb_service.get_artifacts(run_id)
-        return TrackBArtifactsResponse(run_id=run_id, output_dir=data["output_dir"], artifacts=data["artifacts"])
+        return TrackBArtifactsResponse(
+            run_id=run_id,
+            output_dir=data["output_dir"],
+            artifacts=data["artifacts"],
+            profiles=data.get("profiles", []),
+        )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Track B run not found") from exc
 
@@ -119,6 +125,11 @@ async def compare_trackb_runs(req: TrackBComparisonRequest) -> TrackBComparisonR
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/history", response_model=TrackBHistoryResponse)
+async def get_trackb_history(limit: int = 20) -> TrackBHistoryResponse:
+    return trackb_service.get_history(limit=limit)
 
 
 @router.get("/runs/{run_id}/stream")

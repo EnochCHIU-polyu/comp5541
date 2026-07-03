@@ -95,6 +95,24 @@ def _resolve_input_path(raw_path: str) -> str:
     if data_fallback.exists():
         return str(data_fallback)
 
+    name = p.name.lower()
+    data_dir = ROOT / "data"
+    if data_dir.exists():
+      if name in {"report.md", "report.pdf", "report"}:
+        candidates = [
+            path for path in sorted(data_dir.glob("*.md"))
+            if path.name.lower() not in {"readme.md"}
+        ]
+        if candidates:
+            return str(candidates[0])
+      if name in {"trackb_eval_cases.jsonl", "cases.jsonl"}:
+        candidates = [
+            path for path in sorted(data_dir.glob("*.jsonl"))
+            if path.name.lower() not in {"readme.jsonl"}
+        ]
+        if candidates:
+            return str(candidates[0])
+
     return str(p)
 
 
