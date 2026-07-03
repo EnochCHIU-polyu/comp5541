@@ -1,0 +1,198 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "Not available in evidence",
+    "citations": [
+      "\"Evidence keywords: Total revenues, 109,896\""
+    ],
+    "raw_response": "ANSWER: 109896\nCITATIONS: \"Evidence keywords: Total revenues, 109,896\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 109896.0,
+        "expected_value": 109896.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "missing evidence keyword match; unit mismatch; citation not found in report",
+        "revision_applied": true,
+        "initial_reason": "missing evidence keyword match; unit mismatch; citation not found in report"
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "Cannot be determined from provided evidence",
+    "citations": [
+      "The evidence contains no financial data for Alphabet or any revenue figures",
+      "the keywords \"Total revenues, 90,234\" are listed as evidence keywords but the actual context (a resume and personal profile) does not include any such numbers."
+    ],
+    "raw_response": "ANSWER: 90,234\nCITATIONS: \"Total revenues, 90,234\"",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 90234.0,
+        "expected_value": 90234.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "missing evidence keyword match; unit mismatch; citation not found in report",
+        "revision_applied": true,
+        "initial_reason": "missing evidence keyword match; unit mismatch; citation not found in report"
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "Data not available",
+    "citations": [
+      "None of the provided context contains revenue or financial data for Q1 2026."
+    ],
+    "raw_response": "ANSWER: Data not available\nCITATIONS: None of the provided context contains revenue or financial data for Q1 2026.",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": null,
+        "expected_value": 0.22
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "missing evidence keyword match; unit mismatch; citation not found in report",
+        "revision_applied": true,
+        "initial_reason": "missing evidence keyword match; unit mismatch; citation not found in report"
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026 (USD millions)?",
+    "answer": "39,696",
+    "citations": [
+      "\"Operating income, 39,696\""
+    ],
+    "raw_response": "ANSWER: 39,696\nCITATIONS: \"Evidence keywords: Operating income, 39,696\"",
+    "diagnostics": {
+      "retrieved_chunks": 3,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 39696.0,
+        "expected_value": 39696.0
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "missing evidence keyword match; unit mismatch; citation not found in report",
+        "revision_applied": true,
+        "initial_reason": "missing evidence keyword match; unit mismatch; citation not found in report"
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "36%",
+    "citations": [
+      "\"Operating margin, 36 %\""
+    ],
+    "raw_response": "ANSWER: 36%\nCITATIONS: \"Operating margin, 36 %\"",
+    "diagnostics": {
+      "retrieved_chunks": 3,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.36,
+        "expected_value": 0.36
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "missing evidence keyword match",
+        "revision_applied": true,
+        "initial_reason": "missing evidence keyword match"
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

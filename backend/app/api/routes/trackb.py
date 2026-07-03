@@ -45,6 +45,7 @@ async def create_trackb_run_upload(
     model: str = Form(default="deepseek-v3.2"),
     temperature: float = Form(default=0.0),
     max_cases: int = Form(default=0),
+    batch_size: int = Form(default=0),
     profiles: str = Form(default='["baseline"]'),
 ) -> TrackBRunCreateResponse:
     try:
@@ -55,6 +56,7 @@ async def create_trackb_run_upload(
             model=model,
             temperature=temperature,
             max_cases=max_cases,
+            batch_size=batch_size,
             profiles=parsed_profiles,
         )
 
@@ -82,7 +84,7 @@ async def get_trackb_run(run_id: str) -> TrackBRunStatusResponse:
     try:
         return trackb_service.get_status(run_id)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+        raise HTTPException(status_code=404, detail="Harness 1 run not found") from exc
 
 
 @router.get("/runs/{run_id}/metrics", response_model=TrackBMetricsResponse)
@@ -90,7 +92,7 @@ async def get_trackb_metrics(run_id: str) -> TrackBMetricsResponse:
     try:
         return TrackBMetricsResponse(run_id=run_id, metrics_by_profile=trackb_service.get_metrics(run_id))
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+        raise HTTPException(status_code=404, detail="Harness 1 run not found") from exc
 
 
 @router.get("/runs/{run_id}/artifacts", response_model=TrackBArtifactsResponse)
@@ -104,7 +106,7 @@ async def get_trackb_artifacts(run_id: str) -> TrackBArtifactsResponse:
             profiles=data.get("profiles", []),
         )
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+        raise HTTPException(status_code=404, detail="Harness 1 run not found") from exc
 
 
 @router.get("/runs/{run_id}/reproduce", response_model=TrackBReproduceResponse)
@@ -112,7 +114,7 @@ async def get_trackb_reproduce(run_id: str) -> TrackBReproduceResponse:
     try:
         return trackb_service.reproduce(run_id)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+        raise HTTPException(status_code=404, detail="Harness 1 run not found") from exc
 
 
 @router.post("/compare", response_model=TrackBComparisonResponse)
@@ -120,7 +122,7 @@ async def compare_trackb_runs(req: TrackBComparisonRequest) -> TrackBComparisonR
     try:
         return trackb_service.compare(req)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+        raise HTTPException(status_code=404, detail="Harness 1 run not found") from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ValueError as exc:
@@ -137,7 +139,7 @@ async def stream_trackb_events(run_id: str) -> StreamingResponse:
     try:
         queue = await trackb_service.subscribe(run_id)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+        raise HTTPException(status_code=404, detail="Harness 1 run not found") from exc
 
     async def event_stream():
         try:

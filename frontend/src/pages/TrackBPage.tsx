@@ -25,6 +25,19 @@ const PROFILE_BUTTONS: TrackBProfile[] = [
   "all",
 ];
 
+const PROFILE_LABELS: Record<TrackBProfile, string> = {
+  baseline: "baseline",
+  h1: "h1_1",
+  h2: "h1_2",
+  h3: "h1_3",
+  h4: "h1_4",
+  all: "h1_all",
+  all_minus_h1: "all_minus_h1",
+  all_minus_h2: "all_minus_h2",
+  all_minus_h3: "all_minus_h3",
+  all_minus_h4: "all_minus_h4",
+};
+
 const DEFAULT_PROFILES: TrackBProfile[] = ["baseline"];
 
 const ERROR_TAXONOMY = [
@@ -58,7 +71,14 @@ const ERROR_TAXONOMY = [
 export function TrackBPage() {
   const [model, setModel] = useState("deepseek-v4-flash");
   const [temperature, setTemperature] = useState(0);
-  const [maxCases, setMaxCases] = useState(0);
+  const [batchSize, setBatchSize] = useState(10);
+  const [casesCount, setCasesCount] = useState<number | null>(null);
+  const batchMin = 1;
+  const batchMax = Math.max(casesCount ?? 50, batchMin);
+  const batchMarks = useMemo(() => {
+    const mid = Math.max(batchMin, Math.round((batchMin + batchMax) / 2));
+    return [batchMin, mid, batchMax];
+  }, [batchMax]);
   const [profiles, setProfiles] = useState<TrackBProfile[]>(DEFAULT_PROFILES);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [casesFile, setCasesFile] = useState<File | null>(null);
@@ -91,6 +111,50 @@ export function TrackBPage() {
       source.close();
     };
   }, [runId]);
+
+  useEffect(() => {
+    let active = true;
+
+    const detectCasesCount = async () => {
+      if (!casesFile) {
+        if (!active) return;
+        setCasesCount(null);
+        return;
+      }
+
+      try {
+        const text = await casesFile.text();
+        let count = 0;
+        if (/\.json$/i.test(casesFile.name)) {
+          const parsed = JSON.parse(text);
+          count = Array.isArray(parsed) ? parsed.length : 0;
+        } else {
+          count = text
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0).length;
+        }
+        if (!active) return;
+        setCasesCount(count > 0 ? count : null);
+      } catch {
+        if (!active) return;
+        setCasesCount(null);
+      }
+    };
+
+    void detectCasesCount();
+    return () => {
+      active = false;
+    };
+  }, [casesFile]);
+
+  useEffect(() => {
+    setBatchSize((prev) => {
+      if (prev < batchMin) return batchMin;
+      if (prev > batchMax) return batchMax;
+      return prev;
+    });
+  }, [batchMax]);
 
   useEffect(() => {
     if (!runId) return;
@@ -129,6 +193,10 @@ export function TrackBPage() {
   }, [runId]);
 
   const selectedProfilesLabel = useMemo(() => profiles.join(", "), [profiles]);
+  const selectedProfilesDisplay = useMemo(
+    () => profiles.map((p) => PROFILE_LABELS[p]).join(", "),
+    [profiles],
+  );
   const artifactProfiles = artifacts?.profiles ?? [];
 
   const reportLabel = reportFile ? `${reportFile.name} (${Math.round(reportFile.size / 1024)} KB)` : "Choose a PDF or markdown report";
@@ -160,7 +228,7 @@ export function TrackBPage() {
       }
 
       if (profile === "baseline") {
-        return has ? ["baseline"] : ["baseline"];
+        return ["baseline"];
       }
 
       let next = prev.filter((p) => p !== "baseline" && p !== "all");
@@ -172,14 +240,6 @@ export function TrackBPage() {
 
       return next.length > 0 ? next : ["baseline"];
     });
-  };
-
-  const onSelectPreset = (preset: "minimal" | "full" | "loo") => {
-    if (preset === "minimal") {
-      setProfiles(["h1", "h2", "h3", "h4"]);
-      return;
-    }
-    setProfiles(["all"]);
   };
 
   const onLaunch = async () => {
@@ -201,7 +261,8 @@ export function TrackBPage() {
         casesFile,
         model,
         temperature,
-        maxCases,
+        maxCases: 0,
+        batchSize,
         profiles,
       });
       setRunId(run.run_id);
@@ -220,11 +281,11 @@ export function TrackBPage() {
             Track B Workflow
           </p>
           <h1 className="aw-title mt-2 text-3xl font-bold">
-            Financial Report Audit Harness Lab
+            Harness 1: Retrieval + Guardrails
           </h1>
           <p className="aw-subtle mt-2 text-sm">
-            Reproducible evaluation for a required V0 baseline plus H1-H4 harnesses.
-            The baseline is always included; the selected toggles control the extra variants.
+            Combined Track B harness for retrieval, numeric checks, chronology checks,
+            and evidence verification in a single workflow profile.
           </p>
         </header>
 
@@ -302,36 +363,39 @@ export function TrackBPage() {
               />
             </label>
 
-            <label className="text-sm aw-subtle">
-              Max cases (0 = all)
+            <div className="text-sm aw-subtle md:col-span-2">
+              <div className="flex items-center justify-between gap-3">
+                <span>Batch size (questions per run)</span>
+                <span className="aw-chip aw-chip-accent">{batchSize}</span>
+              </div>
               <input
-                className="aw-input mt-1"
-                type="number"
-                min={0}
-                value={maxCases}
-                onChange={(e) => setMaxCases(Number(e.target.value || 0))}
+                className="mt-2 w-full"
+                type="range"
+                min={batchMin}
+                max={batchMax}
+                step={1}
+                list="trackb-batch-size-marks"
+                value={batchSize}
+                onChange={(e) => setBatchSize(Number(e.target.value || batchMin))}
               />
-            </label>
+              <datalist id="trackb-batch-size-marks">
+                {batchMarks.map((mark) => (
+                  <option key={mark} value={mark} label={String(mark)} />
+                ))}
+              </datalist>
+              <div className="mt-1 flex justify-between text-xs">
+                {batchMarks.map((mark) => (
+                  <span key={mark}>{mark}</span>
+                ))}
+              </div>
+              <p className="aw-subtle mt-1 text-xs">
+                Range: {batchMin} to {batchMax}
+                {casesCount ? ` (detected from cases file: ${casesCount})` : ""}
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="aw-chip"
-                onClick={() => onSelectPreset("minimal")}
-              >
-                Preset: H1-H4
-              </button>
-              <button
-                type="button"
-                className="aw-chip"
-                onClick={() => onSelectPreset("full")}
-              >
-                Preset: All only
-              </button>
-            </div>
-
             <div className="grid gap-2 md:grid-cols-3">
               {PROFILE_BUTTONS.map((profile) => {
                 const selected = profiles.includes(profile);
@@ -342,13 +406,13 @@ export function TrackBPage() {
                     className={`aw-chip text-left ${selected ? "aw-chip-accent" : ""}`}
                     onClick={() => onToggleProfile(profile)}
                   >
-                    {profile}
+                    {PROFILE_LABELS[profile]}
                   </button>
                 );
               })}
             </div>
             <p className="aw-subtle text-xs">
-              Selected profiles: {selectedProfilesLabel || "baseline"}
+              Selected profiles: {selectedProfilesDisplay || "baseline"}
             </p>
           </div>
 
@@ -379,6 +443,7 @@ export function TrackBPage() {
                 <span className="aw-chip">stage: {status.stage}</span>
                 <span className="aw-chip">model: {status.model}</span>
                 <span className="aw-chip">temp: {status.temperature}</span>
+                <span className="aw-chip">batch: {status.batch_size}/request</span>
               </div>
 
               <div className="grid gap-2 md:grid-cols-2">

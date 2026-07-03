@@ -37,6 +37,45 @@ If you are new, start from the section that matches your goal.
 
 ---
 
+## Engineering Agent Skill Set
+
+This repo now includes a project-local agent skill bundle at [`.github/skills/engineering/SKILL.md`](.github/skills/engineering/SKILL.md).
+
+### Included Roles
+
+- Frontend Developer
+- Backend Architect
+- AI Engineer
+- Senior Developer
+- Technical Writer
+- Code Reviewer
+- Git Workflow Master
+- Software Architect
+- Minimal Change Engineer
+- SRE
+
+### How To Use It
+
+Tell Copilot which specialist you want, then describe the task in that role’s language.
+
+Examples:
+
+```text
+Use the Frontend Developer agent to redesign the Harness 2 page with a better trend graph.
+```
+
+```text
+Use the Backend Architect agent to harden the Harness 2 upload pipeline and API contract.
+```
+
+```text
+Use the Technical Writer agent to document the engineering skill set and write a quick-start guide.
+```
+
+The reference files are stored in [`.github/skills/engineering/agents/`](.github/skills/engineering/agents/).
+
+---
+
 ## Common Setup
 
 ### Requirements
@@ -169,7 +208,7 @@ Run artifacts are written to `phase4_evaluation/results/trackb/`:
 Track B internals:
 
 1. `phase1_data_pipeline/financial_report_dataset.py`
-2. `phase2_llm_engine/financial_trackb_workflow.py`
+2. `phase2_llm_engine/harness1_workflow.py`
 3. `phase4_evaluation/financial_trackb_scorer.py`
 4. `scripts/run_financial_trackb.py`
 

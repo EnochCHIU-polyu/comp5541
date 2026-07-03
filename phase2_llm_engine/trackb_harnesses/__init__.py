@@ -1,13 +1,14 @@
 """Track B harness modules."""
 
-from .h1_retrieval import retrieve_chunks, build_retrieval_context
-from .h2_numeric_guard import numeric_guard
-from .h3_chronology_guard import chronology_guard
-from .h4_verifier import verify_support
+from .harness1.h1_1 import retrieve_chunks, build_retrieval_context
+from .harness1.h1_2 import build_numeric_hint, numeric_guard
+from .harness1.h1_3 import chronology_guard
+from .harness1.h1_4 import verify_support
 
 __all__ = [
     "retrieve_chunks",
     "build_retrieval_context",
+    "build_numeric_hint",
     "numeric_guard",
     "chronology_guard",
     "verify_support",

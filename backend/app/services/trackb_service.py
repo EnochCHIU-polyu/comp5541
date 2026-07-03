@@ -38,6 +38,7 @@ class TrackBRunState:
     model: str
     temperature: float
     max_cases: int
+    batch_size: int
     profiles: List[TrackBProfile]
     status: str = "queued"
     stage: str = "queued"
@@ -311,6 +312,8 @@ class TrackBService:
         if "all" in req.profiles and len(req.profiles) > 1:
             raise ValueError("Profile 'all' is a workflow preset, not a standalone comparison target")
 
+        effective_max_cases = req.max_cases
+        normalized_batch_size = req.batch_size if req.batch_size > 0 else 1
         run_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc)
         progress = {
@@ -324,7 +327,8 @@ class TrackBService:
             cases_path=cases_path,
             model=req.model,
             temperature=req.temperature,
-            max_cases=req.max_cases,
+            max_cases=effective_max_cases,
+            batch_size=normalized_batch_size,
             profiles=req.profiles,
             progress=progress,
         )
@@ -374,6 +378,7 @@ class TrackBService:
                 model=req.model,
                 temperature=req.temperature,
                 max_cases=req.max_cases,
+                batch_size=req.batch_size,
                 profiles=req.profiles,
             )
         )
@@ -389,7 +394,8 @@ class TrackBService:
             await self._publish(run_id, "trackb_started", "running", {"profiles": state.profiles})
 
             from phase1_data_pipeline.financial_report_dataset import load_financial_eval_cases
-            from phase2_llm_engine.financial_trackb_workflow import (
+            from phase2_llm_engine.harness1_workflow import (
+                run_financial_workflow_batch,
                 run_financial_workflow,
                 workflow_result_to_dict,
             )
@@ -417,38 +423,59 @@ class TrackBService:
                 rows: List[Dict[str, Any]] = []
                 scored = []
 
-                for idx, case in enumerate(cases, 1):
-                    wf = await to_thread(
-                        run_financial_workflow,
-                        report_text=report_text,
-                        case=case,
-                        model=state.model,
-                        temperature=state.temperature,
-                        use_h1_retrieval=flags["use_h1_retrieval"],
-                        use_h2_numeric_guard=flags["use_h2_numeric_guard"],
-                        use_h3_chronology_guard=flags["use_h3_chronology_guard"],
-                        use_h4_verifier=flags["use_h4_verifier"],
-                    )
-                    row = workflow_result_to_dict(wf)
-                    row["variant"] = variant
-                    rows.append(row)
-                    scored.append(score_case(case, row))
+                chunk_size = max(1, state.batch_size)
+                completed = 0
+                for start in range(0, len(cases), chunk_size):
+                    batch_cases = cases[start : start + chunk_size]
+                    if chunk_size == 1:
+                        wf = await to_thread(
+                            run_financial_workflow,
+                            report_text=report_text,
+                            case=batch_cases[0],
+                            model=state.model,
+                            temperature=state.temperature,
+                            use_h1_retrieval=flags["use_h1_retrieval"],
+                            use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                            use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                            use_h4_verifier=flags["use_h4_verifier"],
+                        )
+                        wf_rows = [wf]
+                    else:
+                        wf_rows = await to_thread(
+                            run_financial_workflow_batch,
+                            report_text=report_text,
+                            cases=batch_cases,
+                            model=state.model,
+                            temperature=state.temperature,
+                            use_h1_retrieval=flags["use_h1_retrieval"],
+                            use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                            use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                            use_h4_verifier=flags["use_h4_verifier"],
+                        )
 
-                    with self._lock:
-                        p = state.progress[profile]
-                        p.cases_completed = idx
+                    for case, wf in zip(batch_cases, wf_rows):
+                        completed += 1
+                        row = workflow_result_to_dict(wf)
+                        row["variant"] = variant
+                        rows.append(row)
+                        scored.append(score_case(case, row))
 
-                    await self._publish(
-                        run_id,
-                        "trackb_case_progress",
-                        "running",
-                        {
-                            "profile": profile,
-                            "case_index": idx,
-                            "cases_total": len(cases),
-                            "case_id": case.case_id,
-                        },
-                    )
+                        with self._lock:
+                            p = state.progress[profile]
+                            p.cases_completed = completed
+
+                        await self._publish(
+                            run_id,
+                            "trackb_case_progress",
+                            "running",
+                            {
+                                "profile": profile,
+                                "case_index": completed,
+                                "cases_total": len(cases),
+                                "case_id": case.case_id,
+                                "batch_size": chunk_size,
+                            },
+                        )
 
                 metrics = aggregate_scores(scored)
                 metrics["variant"] = variant
@@ -528,6 +555,7 @@ class TrackBService:
                 model=state.model,
                 temperature=state.temperature,
                 max_cases=state.max_cases,
+                batch_size=state.batch_size,
                 profiles=state.profiles,
                 progress=progress,
                 error=state.error,
@@ -660,6 +688,7 @@ class TrackBService:
                     "-H 'Content-Type: application/json' "
                     f"-d '{{\"report_path\":\"{state.report_path}\",\"cases_path\":\"{state.cases_path}\","
                     f"\"model\":\"{state.model}\",\"temperature\":{state.temperature},"
+                    f"\"batch_size\":{state.batch_size},"
                     f"\"profiles\":[{','.join([f'\"{p}\"' for p in state.profiles])}]}}'"
                 ),
                 "profiles": profiles_csv,
@@ -670,6 +699,7 @@ class TrackBService:
                 "model": state.model,
                 "temperature": state.temperature,
                 "max_cases": state.max_cases,
+                "batch_size": state.batch_size,
                 "profiles": state.profiles,
             },
         )
