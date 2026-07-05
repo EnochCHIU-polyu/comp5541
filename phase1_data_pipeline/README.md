@@ -1,7 +1,9 @@
 # Phase 1 - Data Pipeline
 
 Phase 1 now serves two different workflows:
-1. The Track B financial-report stack.
+
+1. The smart-contract audit stack.
+2. The Track B financial-report stack.
 
 This README focuses on what is actively in use today and where each module fits.
 

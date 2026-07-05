@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
 
 from config import DEFAULT_MODEL
 from phase1_data_pipeline.financial_report_dataset import load_financial_eval_cases
-from phase2_llm_engine.harness1_workflow import (
+from phase2_llm_engine.financial_trackb_workflow import (
     run_financial_workflow,
     workflow_result_to_dict,
 )

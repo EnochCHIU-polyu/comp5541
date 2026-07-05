@@ -1,16 +1,27 @@
 # Track B Harness Design
 
-This directory contains the deterministic harnesses that wrap Track B financial QA generation. The harnesses are not separate products or models; they are narrow control layers used by [phase2_llm_engine/harness1_workflow.py](../harness1_workflow.py) to shape context, add guardrails, and verify support around a single `deepseek-v4-flash` answer pass. Contributors should treat this directory as workflow infrastructure: each harness exists to target one failure class while staying cheap to ablate, debug, and revise independently.
+This directory contains the harness layers that wrap Track B financial QA generation. The harnesses are not separate products or models; they are narrow control layers used by [phase2_llm_engine/financial_trackb_workflow.py](../financial_trackb_workflow.py) to shape context, add guardrails, and verify support around an answer pass. Contributors should treat this directory as workflow infrastructure: each harness exists to target one failure class while staying cheap to ablate, debug, and revise independently.
+
+## Clear Split: H0 Baseline vs H1-H4 Harnesses
+
+- `H0` baseline prompt path is isolated in [phase2_llm_engine/trackb_harnesses/h0_baseline_prompt.py](h0_baseline_prompt.py).
+- `H1-H4` are additive harnesses that can be toggled independently.
+- In workflow:
+  - `use_h2_numeric_guard=False` -> baseline prompt path (`H0`) is used.
+  - `use_h2_numeric_guard=True` -> structured H2 prompt path is used.
+
+This split is intentional so baseline is not accidentally using H2 prompt engineering.
 
 ## Quick Start For Contributors
 
 Read these files first:
 
-- [phase2_llm_engine/harness1_workflow.py](../harness1_workflow.py)
-- [phase2_llm_engine/trackb_harnesses/harness1/h1_1.py](harness1/h1_1.py)
-- [phase2_llm_engine/trackb_harnesses/harness1/h1_2.py](harness1/h1_2.py)
-- [phase2_llm_engine/trackb_harnesses/harness1/h1_3.py](harness1/h1_3.py)
-- [phase2_llm_engine/trackb_harnesses/harness1/h1_4.py](harness1/h1_4.py)
+- [phase2_llm_engine/trackb_harnesses/h0_baseline_prompt.py](h0_baseline_prompt.py)
+- [phase2_llm_engine/financial_trackb_workflow.py](../financial_trackb_workflow.py)
+- [phase2_llm_engine/trackb_harnesses/h1_retrieval.py](h1_retrieval.py)
+- [phase2_llm_engine/trackb_harnesses/h2_numeric_guard.py](h2_numeric_guard.py)
+- [phase2_llm_engine/trackb_harnesses/h3_chronology_guard.py](h3_chronology_guard.py)
+- [phase2_llm_engine/trackb_harnesses/h4_verifier.py](h4_verifier.py)
 
 Run one small sanity check before changing logic:
 
@@ -27,7 +38,13 @@ When you modify a harness, compare a narrow baseline and the affected variant:
 
 ## System Design Overview
 
-The Track B workflow keeps the LLM call simple and moves deterministic behavior into harnesses. Orchestration is controlled by four flags in [phase2_llm_engine/harness1_workflow.py](../harness1_workflow.py): `use_h1_retrieval`, `use_h2_numeric_guard`, `use_h3_chronology_guard`, and `use_h4_verifier`.
+The Track B workflow keeps the LLM call simple and moves deterministic behavior into harnesses. Orchestration is controlled by four flags in [phase2_llm_engine/financial_trackb_workflow.py](../financial_trackb_workflow.py): `use_h1_retrieval`, `use_h2_numeric_guard`, `use_h3_chronology_guard`, and `use_h4_verifier`.
+
+Prompt ownership is explicit:
+
+- H0 owns baseline prompt contract.
+- H2 owns structured prompt contract.
+- Workflow selects H0 vs H2 via `use_h2_numeric_guard`.
 
 The harness stack is intentionally asymmetric:
 
@@ -230,7 +247,7 @@ In the workflow, H4 runs after answer parsing. If the initial verification retur
 
 ## Orchestration And Data Flow
 
-The workflow entry point is `run_financial_workflow(...)` in [phase2_llm_engine/harness1_workflow.py](../harness1_workflow.py).
+The workflow entry point is `run_financial_workflow(...)` in [phase2_llm_engine/financial_trackb_workflow.py](../financial_trackb_workflow.py).
 
 Execution order:
 
@@ -297,7 +314,7 @@ Add a new harness only if it owns a failure mode that is not already clearly cov
 
 1. Put the harness in this directory as a small module with one clear public contract.
 2. Decide whether it is pre-generation, post-generation, or revision-only logic.
-3. Add one explicit workflow flag in [phase2_llm_engine/harness1_workflow.py](../harness1_workflow.py).
+3. Add one explicit workflow flag in [phase2_llm_engine/financial_trackb_workflow.py](../financial_trackb_workflow.py).
 4. Add diagnostics for the harness in the returned workflow result.
 5. Add a new runner mode in [scripts/run_financial_trackb.py](../../scripts/run_financial_trackb.py) so contributors can isolate it.
 6. Add at least one leave-one-out or single-harness evaluation path if the harness is expected to compose with others.
