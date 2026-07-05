@@ -2,11 +2,12 @@ import { NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/trackb", label: "Track B Workflow" },
+  { to: "/trackb/chat", label: "Track B Chat" },
   { to: "/trackb/history", label: "Track B History" },
-  { to: "/trackb/h1", label: "H1 Retrieval" },
-  { to: "/trackb/h2", label: "H2 Numeric Guard" },
-  { to: "/trackb/h3", label: "H3 Chronology Guard" },
-  { to: "/trackb/h4", label: "H4 Verifier" },
+  { to: "/trackb/h1", label: "H1 Code Editor" },
+  { to: "/trackb/h2", label: "H2 Harness" },
+  { to: "/trackb/h3", label: "H3 Harness" },
+  { to: "/trackb/h4", label: "H4 Harness" },
 ];
 
 function linkClass(active: boolean): string {

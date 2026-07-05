@@ -89,6 +89,62 @@ export interface TrackBRunCreateRequest {
   max_cases: number;
   batch_size: number;
   profiles: TrackBProfile[];
+  h1_components?: TrackBH1ComponentConfig[];
+  h3_layers?: TrackBH3LayerConfig[];
+}
+
+export interface TrackBH1ComponentConfig {
+  name: string;
+  enabled: boolean;
+  top_k: number;
+  evidence_keywords: string[];
+  note: string;
+}
+
+export interface TrackBH3LayerConfig {
+  model: string;
+  batch_size: number;
+}
+
+export interface TrackBH1CodeSection {
+  name: string;
+  kind: "function" | "class";
+  start_line: number;
+  end_line: number;
+  source: string;
+}
+
+export interface TrackBH1ComponentsResponse {
+  source_path: string;
+  full_source: string;
+  sections: TrackBH1CodeSection[];
+}
+
+export interface TrackBH1SourceSaveResponse {
+  source_path: string;
+  bytes_written: number;
+}
+
+export interface TrackBH2SourceResponse {
+  source_path: string;
+  full_source: string;
+}
+
+export interface TrackBH2SourceSaveResponse {
+  source_path: string;
+  bytes_written: number;
+  runtime_refreshed: boolean;
+}
+
+export interface TrackBH4SourceResponse {
+  source_path: string;
+  full_source: string;
+}
+
+export interface TrackBH4SourceSaveResponse {
+  source_path: string;
+  bytes_written: number;
+  runtime_refreshed: boolean;
 }
 
 export interface TrackBRunCreateResponse {
@@ -97,6 +153,57 @@ export interface TrackBRunCreateResponse {
   created_at: string;
   profiles: TrackBProfile[];
   links: Record<string, string>;
+}
+
+export interface TrackBChatProfileAnswer {
+  profile: string;
+  answer: string;
+  citations: string[];
+  diagnostics: Record<string, unknown>;
+  elapsed_ms: number;
+}
+
+export type TrackBChatHarness = "baseline" | "all" | "h1" | "h2" | "h3" | "h4";
+
+export interface TrackBChatTurn {
+  turn_id: string;
+  question: string;
+  created_at: string;
+  answers: TrackBChatProfileAnswer[];
+}
+
+export interface TrackBChatSessionCreateResponse {
+  session_id: string;
+  status: "ready";
+  created_at: string;
+  report_path: string;
+  report_name: string;
+  model: string;
+  temperature: number;
+}
+
+export interface TrackBChatAskRequest {
+  question: string;
+  harnesses: TrackBChatHarness[];
+  model?: string;
+  temperature?: number;
+  h1_components?: TrackBH1ComponentConfig[];
+  h3_layers?: TrackBH3LayerConfig[];
+}
+
+export interface TrackBChatAskResponse {
+  session_id: string;
+  turn: TrackBChatTurn;
+}
+
+export interface TrackBChatSessionResponse {
+  session_id: string;
+  created_at: string;
+  report_path: string;
+  report_name: string;
+  model: string;
+  temperature: number;
+  turns: TrackBChatTurn[];
 }
 
 export interface TrackBProfileProgress {
@@ -389,6 +496,8 @@ export async function createTrackBUploadRun(params: {
   maxCases: number;
   batchSize: number;
   profiles: TrackBProfile[];
+  h1Components?: TrackBH1ComponentConfig[];
+  h3Layers?: TrackBH3LayerConfig[];
 }): Promise<TrackBRunCreateResponse> {
   const formData = new FormData();
   formData.append("report_file", params.reportFile);
@@ -398,6 +507,8 @@ export async function createTrackBUploadRun(params: {
   formData.append("max_cases", String(params.maxCases));
   formData.append("batch_size", String(params.batchSize));
   formData.append("profiles", JSON.stringify(params.profiles));
+  formData.append("h1_components", JSON.stringify(params.h1Components ?? []));
+  formData.append("h3_layers", JSON.stringify(params.h3Layers ?? []));
 
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/upload`, {
     method: "POST",
@@ -410,6 +521,139 @@ export async function createTrackBUploadRun(params: {
     );
   }
   return res.json() as Promise<TrackBRunCreateResponse>;
+}
+
+export async function getTrackBH1Components(): Promise<TrackBH1ComponentsResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h1/components`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(
+      `Get H1 harness components failed: ${res.status} ${detail}`,
+    );
+  }
+  return res.json() as Promise<TrackBH1ComponentsResponse>;
+}
+
+export async function saveTrackBH1Source(
+  fullSource: string,
+): Promise<TrackBH1SourceSaveResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h1/source`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ full_source: fullSource }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Save H1 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH1SourceSaveResponse>;
+}
+
+export async function getTrackBH2Source(): Promise<TrackBH2SourceResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h2/source`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get H2 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH2SourceResponse>;
+}
+
+export async function saveTrackBH2Source(
+  fullSource: string,
+): Promise<TrackBH2SourceSaveResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h2/source`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ full_source: fullSource }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Save H2 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH2SourceSaveResponse>;
+}
+
+export async function getTrackBH4Source(): Promise<TrackBH4SourceResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h4/source`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get H4 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH4SourceResponse>;
+}
+
+export async function saveTrackBH4Source(
+  fullSource: string,
+): Promise<TrackBH4SourceSaveResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h4/source`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ full_source: fullSource }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Save H4 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH4SourceSaveResponse>;
+}
+
+export async function createTrackBChatSessionUpload(params: {
+  reportFile: File;
+  model: string;
+  temperature: number;
+  h1Components?: TrackBH1ComponentConfig[];
+  h3Layers?: TrackBH3LayerConfig[];
+}): Promise<TrackBChatSessionCreateResponse> {
+  const formData = new FormData();
+  formData.append("report_file", params.reportFile);
+  formData.append("model", params.model);
+  formData.append("temperature", String(params.temperature));
+  formData.append("h1_components", JSON.stringify(params.h1Components ?? []));
+  formData.append("h3_layers", JSON.stringify(params.h3Layers ?? []));
+
+  const res = await fetch(`${API_BASE}/api/v1/trackb/chat/sessions/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(
+      `Create Track B chat session failed: ${res.status} ${detail}`,
+    );
+  }
+  return res.json() as Promise<TrackBChatSessionCreateResponse>;
+}
+
+export async function askTrackBChatSession(
+  sessionId: string,
+  payload: TrackBChatAskRequest,
+): Promise<TrackBChatAskResponse> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/chat/sessions/${sessionId}/ask`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Ask Track B chat session failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBChatAskResponse>;
+}
+
+export async function getTrackBChatSession(
+  sessionId: string,
+): Promise<TrackBChatSessionResponse> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/chat/sessions/${sessionId}`,
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B chat session failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBChatSessionResponse>;
 }
 
 export async function getTrackBRunStatus(

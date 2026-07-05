@@ -10,11 +10,16 @@ import {
   streamTrackBRunEvents,
   type TrackBArtifactsResponse,
   type TrackBEvent,
+  type TrackBH1ComponentConfig,
+  type TrackBH3LayerConfig,
   type TrackBMetricsResponse,
   type TrackBProfile,
   type TrackBReproduceResponse,
   type TrackBRunStatusResponse,
 } from "../features/benchmark/services/benchmarkApi";
+
+const H1_COMPONENTS_STORAGE_KEY = "trackb.h1.components.v1";
+const H3_LAYERS_STORAGE_KEY = "trackb.h3.layers.v1";
 
 const PROFILE_BUTTONS: TrackBProfile[] = [
   "baseline",
@@ -58,6 +63,65 @@ const ERROR_TAXONOMY = [
     description: "The claim was not backed by the cited evidence snippets.",
   },
 ];
+
+function loadH1ComponentsFromStorage(): TrackBH1ComponentConfig[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(H1_COMPONENTS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const row = item as Record<string, unknown>;
+        const name = String(row.name ?? "").trim();
+        if (!name) return null;
+        return {
+          name,
+          enabled: Boolean(row.enabled ?? true),
+          top_k: Math.max(1, Math.min(Number(row.top_k ?? 6) || 6, 20)),
+          evidence_keywords: Array.isArray(row.evidence_keywords)
+            ? row.evidence_keywords
+                .map((v) => String(v ?? "").trim())
+                .filter((v) => v.length > 0)
+            : [],
+          note: String(row.note ?? ""),
+        } satisfies TrackBH1ComponentConfig;
+      })
+      .filter((row): row is TrackBH1ComponentConfig => row !== null);
+  } catch {
+    return [];
+  }
+}
+
+function loadH3LayersFromStorage(): TrackBH3LayerConfig[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(H3_LAYERS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const row = item as Record<string, unknown>;
+        const model = String(row.model ?? "").trim();
+        if (!model) return null;
+        return {
+          model,
+          batch_size: Math.max(
+            1,
+            Math.min(Number(row.batch_size ?? 8) || 8, 64),
+          ),
+        } satisfies TrackBH3LayerConfig;
+      })
+      .filter((row): row is TrackBH3LayerConfig => row !== null)
+      .slice(0, 4);
+  } catch {
+    return [];
+  }
+}
 
 export function TrackBPage() {
   const [model, setModel] = useState("DeepSeek-V3.2");
@@ -280,6 +344,8 @@ export function TrackBPage() {
         maxCases,
         batchSize,
         profiles,
+        h1Components: loadH1ComponentsFromStorage(),
+        h3Layers: loadH3LayersFromStorage(),
       });
       setRunId(run.run_id);
     } catch (err) {
