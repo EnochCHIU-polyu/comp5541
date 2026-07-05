@@ -38,6 +38,7 @@ class TrackBRunState:
     model: str
     temperature: float
     max_cases: int
+    batch_size: int
     profiles: List[TrackBProfile]
     status: str = "queued"
     stage: str = "queued"
@@ -304,7 +305,18 @@ class TrackBService:
             raise ValueError(f"Cases file not found: {cases_path}")
         if not req.profiles:
             raise ValueError("At least one profile must be selected")
-        allowed = {"baseline", "h1", "h2", "h3", "h4", "all"}
+        allowed = {
+            "baseline",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "all",
+            "all_minus_h1",
+            "all_minus_h2",
+            "all_minus_h3",
+            "all_minus_h4",
+        }
         invalid = [profile for profile in req.profiles if profile not in allowed]
         if invalid:
             raise ValueError(f"Unsupported profiles: {', '.join(invalid)}")
@@ -325,6 +337,7 @@ class TrackBService:
             model=req.model,
             temperature=req.temperature,
             max_cases=req.max_cases,
+            batch_size=req.batch_size,
             profiles=req.profiles,
             progress=progress,
         )
@@ -374,6 +387,7 @@ class TrackBService:
                 model=req.model,
                 temperature=req.temperature,
                 max_cases=req.max_cases,
+                batch_size=req.batch_size,
                 profiles=req.profiles,
             )
         )
@@ -391,6 +405,7 @@ class TrackBService:
             from phase1_data_pipeline.financial_report_dataset import load_financial_eval_cases
             from phase2_llm_engine.financial_trackb_workflow import (
                 run_financial_workflow,
+                run_financial_workflow_batch,
                 workflow_result_to_dict,
             )
             from phase4_evaluation.financial_trackb_scorer import aggregate_scores, score_case
@@ -417,38 +432,85 @@ class TrackBService:
                 rows: List[Dict[str, Any]] = []
                 scored = []
 
-                for idx, case in enumerate(cases, 1):
-                    wf = await to_thread(
-                        run_financial_workflow,
-                        report_text=report_text,
-                        case=case,
-                        model=state.model,
-                        temperature=state.temperature,
-                        use_h1_retrieval=flags["use_h1_retrieval"],
-                        use_h2_numeric_guard=flags["use_h2_numeric_guard"],
-                        use_h3_chronology_guard=flags["use_h3_chronology_guard"],
-                        use_h4_verifier=flags["use_h4_verifier"],
+                def _is_context_length_error(exc: Exception) -> bool:
+                    err_text = str(exc).lower()
+                    return (
+                        "context_length_exceeded" in err_text
+                        or "message is too long" in err_text
+                        or "context length" in err_text
                     )
-                    row = workflow_result_to_dict(wf)
-                    row["variant"] = variant
-                    rows.append(row)
-                    scored.append(score_case(case, row))
 
-                    with self._lock:
-                        p = state.progress[profile]
-                        p.cases_completed = idx
+                async def _run_batch_with_fallback(case_batch: list[Any]) -> list[Any]:
+                    try:
+                        return await to_thread(
+                            run_financial_workflow_batch,
+                            report_text=report_text,
+                            cases=case_batch,
+                            model=state.model,
+                            temperature=state.temperature,
+                            use_h1_retrieval=flags["use_h1_retrieval"],
+                            use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                            use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                            use_h4_verifier=flags["use_h4_verifier"],
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        if not _is_context_length_error(exc):
+                            raise
 
-                    await self._publish(
-                        run_id,
-                        "trackb_case_progress",
-                        "running",
-                        {
-                            "profile": profile,
-                            "case_index": idx,
-                            "cases_total": len(cases),
-                            "case_id": case.case_id,
-                        },
-                    )
+                        if len(case_batch) == 1:
+                            single = case_batch[0]
+                            wf = await to_thread(
+                                run_financial_workflow,
+                                report_text=report_text,
+                                case=single,
+                                model=state.model,
+                                temperature=state.temperature,
+                                use_h1_retrieval=True,
+                                use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                use_h4_verifier=flags["use_h4_verifier"],
+                            )
+                            return [wf]
+
+                        mid = max(1, len(case_batch) // 2)
+                        left = await _run_batch_with_fallback(case_batch[:mid])
+                        right = await _run_batch_with_fallback(case_batch[mid:])
+                        return left + right
+
+                completed = 0
+                batch_size = max(1, int(state.batch_size or 1))
+                for start in range(0, len(cases), batch_size):
+                    case_batch = cases[start : start + batch_size]
+                    wf_batch = await _run_batch_with_fallback(case_batch)
+                    case_by_id = {c.case_id: c for c in case_batch}
+
+                    for idx_in_batch, wf in enumerate(wf_batch):
+                        case = case_by_id.get(wf.case_id)
+                        if case is None:
+                            case = case_batch[min(idx_in_batch, len(case_batch) - 1)]
+
+                        row = workflow_result_to_dict(wf)
+                        row["variant"] = variant
+                        rows.append(row)
+                        scored.append(score_case(case, row))
+
+                        completed += 1
+                        with self._lock:
+                            p = state.progress[profile]
+                            p.cases_completed = completed
+
+                        await self._publish(
+                            run_id,
+                            "trackb_case_progress",
+                            "running",
+                            {
+                                "profile": profile,
+                                "case_index": completed,
+                                "cases_total": len(cases),
+                                "case_id": case.case_id,
+                                "batch_size": batch_size,
+                            },
+                        )
 
                 metrics = aggregate_scores(scored)
                 metrics["variant"] = variant
@@ -528,6 +590,7 @@ class TrackBService:
                 model=state.model,
                 temperature=state.temperature,
                 max_cases=state.max_cases,
+                batch_size=state.batch_size,
                 profiles=state.profiles,
                 progress=progress,
                 error=state.error,
@@ -670,6 +733,7 @@ class TrackBService:
                 "model": state.model,
                 "temperature": state.temperature,
                 "max_cases": state.max_cases,
+                "batch_size": state.batch_size,
                 "profiles": state.profiles,
             },
         )

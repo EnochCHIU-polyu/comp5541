@@ -36,16 +36,18 @@ TrackBEventType = Literal[
 class TrackBRunCreateRequest(BaseModel):
     report_path: str = "data/report.md"
     cases_path: str = "data/trackb_eval_cases.jsonl"
-    model: str = "deepseek-v3.2"
+    model: str = "DeepSeek-V3.2"
     temperature: float = 0.0
     max_cases: int = Field(default=0, ge=0)
+    batch_size: int = Field(default=1, ge=1)
     profiles: List[TrackBProfile] = Field(default_factory=lambda: ["baseline"])
 
 
 class TrackBUploadRunRequest(BaseModel):
-    model: str = "deepseek-v3.2"
+    model: str = "DeepSeek-V3.2"
     temperature: float = 0.0
     max_cases: int = Field(default=0, ge=0)
+    batch_size: int = Field(default=1, ge=1)
     profiles: List[TrackBProfile] = Field(default_factory=lambda: ["baseline"])
 
 
@@ -76,6 +78,7 @@ class TrackBRunStatusResponse(BaseModel):
     model: str
     temperature: float
     max_cases: int
+    batch_size: int
     profiles: List[TrackBProfile] = Field(default_factory=list)
     progress: List[TrackBProfileProgress] = Field(default_factory=list)
     error: Optional[str] = None

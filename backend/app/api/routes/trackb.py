@@ -42,9 +42,10 @@ async def create_trackb_run(req: TrackBRunCreateRequest) -> TrackBRunCreateRespo
 async def create_trackb_run_upload(
     report_file: UploadFile = File(...),
     cases_file: UploadFile = File(...),
-    model: str = Form(default="deepseek-v3.2"),
+    model: str = Form(default="DeepSeek-V3.2"),
     temperature: float = Form(default=0.0),
     max_cases: int = Form(default=0),
+    batch_size: int = Form(default=1),
     profiles: str = Form(default='["baseline"]'),
 ) -> TrackBRunCreateResponse:
     try:
@@ -55,6 +56,7 @@ async def create_trackb_run_upload(
             model=model,
             temperature=temperature,
             max_cases=max_cases,
+            batch_size=batch_size,
             profiles=parsed_profiles,
         )
 

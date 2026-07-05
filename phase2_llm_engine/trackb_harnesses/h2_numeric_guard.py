@@ -10,6 +10,45 @@ from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
 _NUM_RE = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?%?")
 
 
+def build_h2_prompt(
+    question: str,
+    context: str,
+    hint_block: str = "",
+) -> list[dict[str, str]]:
+    """Build the H2 generation prompt with strict output and anti-hallucination rules."""
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are a financial QA assistant for earnings and filings. "
+                "Use only the provided Context. Do not use outside knowledge. "
+                "If evidence is missing, conflicting, or too weak, do not guess. "
+                "Keep the answer concise and preserve exact numeric scale/unit from the evidence."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "Question:\n"
+                f"{question}\n\n"
+                f"{hint_block + '\n\n' if hint_block else ''}"
+                "Context:\n"
+                f"{context}\n\n"
+                "Output format (strict):\n"
+                "ANSWER: <short answer, <= 25 words>\n"
+                "CITATIONS: <semicolon-separated direct snippets from Context>\n\n"
+                "Hard constraints:\n"
+                "- Do not invent numbers, entities, dates, or units.\n"
+                "- Prefer exact table/disclosure values over rounded headline statements.\n"
+                "- Every material claim in ANSWER must be grounded by CITATIONS text.\n"
+                "- If evidence is insufficient, answer exactly:\n"
+                "  ANSWER: INSUFFICIENT_EVIDENCE\n"
+                "  CITATIONS: NONE"
+            ),
+        },
+    ]
+
+
 def _extract_first_number(text: str) -> float | None:
     m = _NUM_RE.search(text)
     if not m:

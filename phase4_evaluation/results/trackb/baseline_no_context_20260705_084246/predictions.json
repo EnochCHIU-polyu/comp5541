@@ -1,0 +1,45 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "Unknown",
+    "citations": [
+      "NO_CONTEXT"
+    ],
+    "raw_response": "ANSWER: Unknown  \nCITATIONS: NO_CONTEXT",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "no_context": true,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false,
+        "skipped": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline_no_context",
+      "enabled_harnesses": [
+        "use_no_context"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

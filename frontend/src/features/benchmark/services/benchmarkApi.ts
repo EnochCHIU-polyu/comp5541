@@ -87,6 +87,7 @@ export interface TrackBRunCreateRequest {
   model: string;
   temperature: number;
   max_cases: number;
+  batch_size: number;
   profiles: TrackBProfile[];
 }
 
@@ -117,6 +118,7 @@ export interface TrackBRunStatusResponse {
   model: string;
   temperature: number;
   max_cases: number;
+  batch_size: number;
   profiles: TrackBProfile[];
   progress: TrackBProfileProgress[];
   error: string | null;
@@ -325,6 +327,7 @@ export async function createTrackBUploadRun(params: {
   model: string;
   temperature: number;
   maxCases: number;
+  batchSize: number;
   profiles: TrackBProfile[];
 }): Promise<TrackBRunCreateResponse> {
   const formData = new FormData();
@@ -333,6 +336,7 @@ export async function createTrackBUploadRun(params: {
   formData.append("model", params.model);
   formData.append("temperature", String(params.temperature));
   formData.append("max_cases", String(params.maxCases));
+  formData.append("batch_size", String(params.batchSize));
   formData.append("profiles", JSON.stringify(params.profiles));
 
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/upload`, {
@@ -341,7 +345,9 @@ export async function createTrackBUploadRun(params: {
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Create Track B upload run failed: ${res.status} ${detail}`);
+    throw new Error(
+      `Create Track B upload run failed: ${res.status} ${detail}`,
+    );
   }
   return res.json() as Promise<TrackBRunCreateResponse>;
 }
@@ -383,7 +389,9 @@ export async function getTrackBHistory(
   limit = 20,
 ): Promise<TrackBHistoryResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
-  const res = await fetch(`${API_BASE}/api/v1/trackb/history?${params.toString()}`);
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/history?${params.toString()}`,
+  );
   if (!res.ok) {
     const detail = await res.text();
     throw new Error(`Get Track B history failed: ${res.status} ${detail}`);
@@ -422,7 +430,9 @@ export function streamTrackBRunEvents(
   runId: string,
   onEvent: (evt: TrackBEvent) => void,
 ): EventSource {
-  const source = new EventSource(`${API_BASE}/api/v1/trackb/runs/${runId}/stream`);
+  const source = new EventSource(
+    `${API_BASE}/api/v1/trackb/runs/${runId}/stream`,
+  );
   const handler = (event: MessageEvent<string>) => {
     try {
       const payload = JSON.parse(event.data) as TrackBEvent;
