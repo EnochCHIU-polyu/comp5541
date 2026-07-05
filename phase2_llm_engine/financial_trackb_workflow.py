@@ -207,7 +207,7 @@ def run_financial_workflow(
             report_text,
             case.question,
             top_k=6,
-            evidence_keywords=case.evidence_keywords,
+            evidence_keywords=None,
         )
         _emit_progress(
             progress_callback,
@@ -221,10 +221,6 @@ def run_financial_workflow(
         context = report_text
 
     hint_blocks: list[str] = []
-    if case.evidence_keywords:
-        hint_blocks.append(f"Evidence keywords: {', '.join(case.evidence_keywords)}")
-    if case.expected_unit:
-        hint_blocks.append(f"Expected answer unit: {case.expected_unit}")
     if use_h2_numeric_guard:
         numeric_hint = build_numeric_hint(report_text, case, top_k=3)
         if numeric_hint:
@@ -265,8 +261,6 @@ def run_financial_workflow(
             context=context,
             draft_answer=answer,
             draft_citations=citations,
-            expected_unit=case.expected_unit,
-            evidence_keywords=case.evidence_keywords,
         )
         reviewer_model = h3_reviewer_model or model
         judge_raw = _query_llm_with_process("h3_judge", judge_prompt, model=reviewer_model, temperature=0.0)
@@ -462,7 +456,7 @@ def run_financial_workflow_batch(
                 report_text,
                 case.question,
                 top_k=6,
-                evidence_keywords=case.evidence_keywords,
+                evidence_keywords=None,
             )
         else:
             context = _compact_context(report_text, case.question)
@@ -471,10 +465,6 @@ def run_financial_workflow_batch(
             context = context[:_BATCH_CONTEXT_CHARS_PER_CASE]
 
         hint_blocks: list[str] = []
-        if case.evidence_keywords:
-            hint_blocks.append(f"Evidence keywords: {', '.join(case.evidence_keywords)}")
-        if case.expected_unit:
-            hint_blocks.append(f"Expected answer unit: {case.expected_unit}")
         if use_h2_numeric_guard:
             numeric_hint = build_numeric_hint(report_text, case, top_k=3)
             if numeric_hint:
@@ -531,8 +521,6 @@ def run_financial_workflow_batch(
                     "context": context_by_case_id.get(case.case_id, report_text),
                     "draft_answer": draft_answer,
                     "draft_citations": "; ".join(draft_citations) if draft_citations else "NONE",
-                    "expected_unit": case.expected_unit or "(none)",
-                    "evidence_keywords": ", ".join(case.evidence_keywords or []) or "(none)",
                 }
             )
 
@@ -577,8 +565,6 @@ def run_financial_workflow_batch(
                         "context": context_by_case_id.get(case.case_id, report_text),
                         "draft_answer": draft_answer,
                         "draft_citations": "; ".join(draft_citations) if draft_citations else "NONE",
-                        "expected_unit": case.expected_unit or "(none)",
-                        "evidence_keywords": ", ".join(case.evidence_keywords or []) or "(none)",
                     }
                 )
 

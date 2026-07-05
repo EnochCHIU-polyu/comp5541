@@ -37,8 +37,6 @@ def build_h3_review_prompts(
             "content": (
                 "Question:\n"
                 f"{question}\n\n"
-                f"Expected unit: {expected_unit or '(none)'}\n"
-                f"Evidence keywords: {', '.join(evidence_keywords or []) or '(none)'}\n\n"
                 "Draft output:\n"
                 f"ANSWER: {draft_answer}\n"
                 f"CITATIONS: {'; '.join(draft_citations) if draft_citations else 'NONE'}\n\n"
@@ -72,8 +70,6 @@ def build_h3_review_prompts(
             "content": (
                 "Question:\n"
                 f"{question}\n\n"
-                f"Expected unit: {expected_unit or '(none)'}\n"
-                f"Evidence keywords: {', '.join(evidence_keywords or []) or '(none)'}\n\n"
                 "Prior draft:\n"
                 f"ANSWER: {draft_answer}\n"
                 f"CITATIONS: {'; '.join(draft_citations) if draft_citations else 'NONE'}\n\n"
@@ -107,8 +103,6 @@ def build_h3_batch_judge_prompt(items: list[dict[str, str]]) -> list[dict[str, s
                     f"CASE {idx} | case_id={item['case_id']}",
                     "Question:",
                     item["question"],
-                    f"Expected unit: {item.get('expected_unit', '(none)') or '(none)'}",
-                    f"Evidence keywords: {item.get('evidence_keywords', '(none)') or '(none)'}",
                     "Draft output:",
                     f"ANSWER: {item.get('draft_answer', '')}",
                     f"CITATIONS: {item.get('draft_citations', 'NONE') or 'NONE'}",
@@ -159,8 +153,6 @@ def build_h3_batch_revision_prompt(items: list[dict[str, str]]) -> list[dict[str
                     f"CASE {idx} | case_id={item['case_id']}",
                     "Question:",
                     item["question"],
-                    f"Expected unit: {item.get('expected_unit', '(none)') or '(none)'}",
-                    f"Evidence keywords: {item.get('evidence_keywords', '(none)') or '(none)'}",
                     "Prior draft:",
                     f"ANSWER: {item.get('draft_answer', '')}",
                     f"CITATIONS: {item.get('draft_citations', 'NONE') or 'NONE'}",

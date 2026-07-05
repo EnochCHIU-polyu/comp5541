@@ -113,18 +113,14 @@ def build_numeric_hint(report_text: str, case: FinancialEvalCase, top_k: int = 3
         return ""
     ranked = sorted(
         lines,
-        key=lambda line: _keyword_score(line, case.evidence_keywords, case.question),
+        key=lambda line: _keyword_score(line, None, case.question),
         reverse=True,
     )
-    picked = [line for line in ranked if _keyword_score(line, case.evidence_keywords, case.question) > 0][:top_k]
+    picked = [line for line in ranked if _keyword_score(line, None, case.question) > 0][:top_k]
     if not picked:
         picked = ranked[:top_k]
     if not picked:
         return ""
-
-    arithmetic_hint = ""
-    if case.arithmetic_expression:
-        arithmetic_hint = f"\nDerived arithmetic target: {case.arithmetic_expression}"
 
     yn_hint = ""
     if case.answer_type == "text" and "yes or no" in case.question.lower():
@@ -133,8 +129,6 @@ def build_numeric_hint(report_text: str, case: FinancialEvalCase, top_k: int = 3
     return (
         "Numeric evidence hints:\n"
         + "\n".join(f"- {line}" for line in picked)
-        + (f"\nTarget unit: {case.expected_unit}" if case.expected_unit else "")
-        + arithmetic_hint
         + yn_hint
         + "\nInstruction: preserve the report's exact scale; do not round a table value into a headline approximation."
     )

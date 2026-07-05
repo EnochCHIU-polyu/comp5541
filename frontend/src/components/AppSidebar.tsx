@@ -26,9 +26,11 @@ export function AppSidebar({ onCollapse }: AppSidebarProps) {
       <div className="flex items-start justify-between gap-2 border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-[#1E293B]">
-            StudyFlow
+            LLM for Financial Reports
           </h1>
-          <p className="aw-subtle mt-1 text-xs">AI Notes and Learning Platform</p>
+          <p className="aw-subtle mt-1 text-xs">
+            AI Powered Financial Analysis
+          </p>
         </div>
         <button
           type="button"

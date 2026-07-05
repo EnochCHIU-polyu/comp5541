@@ -6,14 +6,14 @@ export function LandingPage() {
       <section className="mx-auto w-full max-w-5xl">
         <div className="aw-card">
           <p className="aw-subtle text-xs uppercase tracking-[0.2em]">
-            COMP5541 Draft Workspace
+            AI Powered Financial Analysis
           </p>
           <h1 className="aw-title mt-3 text-3xl font-bold md:text-4xl">
-            AI-Driven Notes and Learning Platform
+            AI Notes and Learning Platform
           </h1>
           <p className="aw-subtle mx-auto mt-3 max-w-xl text-sm md:text-base">
-            This blank startup is ready for drafting your new system. Replace the
-            sections below with your feature implementation.
+            This blank startup is ready for drafting your new system. Replace
+            the sections below with your feature implementation.
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">

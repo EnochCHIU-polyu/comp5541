@@ -110,9 +110,4 @@ def build_retrieval_context(
     if not chunks:
         return [], report_text
     context = "\n\n---\n\n".join(chunks)
-    if evidence_keywords:
-        context = (
-            f"Evidence keywords: {', '.join(str(k) for k in evidence_keywords if str(k).strip())}\n\n"
-            f"{context}"
-        )
     return chunks, context
