@@ -1,0 +1,36 @@
+{
+  "run_id": "1fc5c3ce-b87a-470f-bc49-7fc6ff9a2d8b",
+  "created_at": "2026-07-03T08:27:20.289767+00:00",
+  "seed_url": "https://abc.xyz/investor",
+  "resolved_root_link": "https://abc.xyz/investor",
+  "symbol": "GOOGL",
+  "horizon_days": 30,
+  "analysis_profile": "h1_all",
+  "model": "deepseek-v4-flash",
+  "temperature": 0.0,
+  "evaluation": {
+    "root_link_ok": false,
+    "pdf_download_rate": 0.0,
+    "markdown_conversion_rate": 0.0,
+    "internal_report_rate": 0.0,
+    "trend_eval_coverage": 0.0,
+    "trend_direction_accuracy": 0.0,
+    "checklist": {
+      "root_link_resolved": false,
+      "downloaded_pdf": false,
+      "converted_pdf_to_md": false,
+      "built_internal_reports": false,
+      "trend_validated_with_prices": false
+    }
+  },
+  "reports": [],
+  "notes": [
+    "Seed URL fetch blocked/unavailable: https://abc.xyz/investor (403 Client Error: Forbidden for url: https://abc.xyz/investor)",
+    "No direct report candidates found on seed page; trying root domain.",
+    "Root-domain fetch blocked/unavailable: https://abc.xyz (403 Client Error: Forbidden for url: https://abc.xyz/)",
+    "No downloadable report links discovered. Run will complete with empty report set.",
+    "Price fetch failed for symbol GOOGL: 404 Client Error: Not Found for url: https://stooq.com/q/d/l/?s=googl.us&i=d"
+  ],
+  "trend_points": [],
+  "download_script_path": "/home/enoch/Documents/comp5541/phase4_evaluation/results/harness2_history/1fc5c3ce-b87a-470f-bc49-7fc6ff9a2d8b/scripts/secure_download_reports.py"
+}

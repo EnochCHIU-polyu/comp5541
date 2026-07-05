@@ -1,12 +1,10 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { to: "/trackb", label: "Track B Workflow" },
+  { to: "/trackb", label: "Harness 1: Retrieval + Guardrails" },
+  { to: "/trackb/harness2", label: "Harness 2: Build + Trend Analysis" },
+  { to: "/trackb/harness2/history", label: "Harness 2: History Search" },
   { to: "/trackb/history", label: "Track B History" },
-  { to: "/trackb/h1", label: "H1 Retrieval" },
-  { to: "/trackb/h2", label: "H2 Numeric Guard" },
-  { to: "/trackb/h3", label: "H3 Chronology Guard" },
-  { to: "/trackb/h4", label: "H4 Verifier" },
 ];
 
 function linkClass(active: boolean): string {
@@ -26,9 +24,9 @@ export function AppSidebar({ onCollapse }: AppSidebarProps) {
       <div className="flex items-start justify-between gap-2 border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-[#1E293B]">
-            StudyFlow
+            Deep Report
           </h1>
-          <p className="aw-subtle mt-1 text-xs">AI Notes and Learning Platform</p>
+          <p className="aw-subtle mt-1 text-xs">Track B Harness Console</p>
         </div>
         <button
           type="button"
@@ -46,7 +44,7 @@ export function AppSidebar({ onCollapse }: AppSidebarProps) {
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === "/"}
+            end
             className={({ isActive }) => linkClass(isActive)}
           >
             {item.label}

@@ -1,0 +1,31 @@
+{
+  "total_cases": 5,
+  "overall_accuracy": 0.2,
+  "numeric_accuracy": 0.2,
+  "citation_rate": 0.8,
+  "error_counts": {
+    "E1": 5,
+    "E2": 0,
+    "E3": 0,
+    "E4": 0,
+    "E5": 0
+  },
+  "variant": {
+    "variant_name": "baseline",
+    "enabled_harnesses": [],
+    "disabled_harnesses": [
+      "use_h1_retrieval",
+      "use_h2_numeric_guard",
+      "use_h3_chronology_guard",
+      "use_h4_verifier"
+    ],
+    "is_baseline": true,
+    "is_full_workflow": false,
+    "is_leave_one_out_ablation": false
+  },
+  "report_path": "/home/enoch/Documents/comp5541/phase4_evaluation/results/trackb_runs/79a5eda1-a7fe-4e77-adc6-3d446bd4053a/_uploads/CV(20260604).md",
+  "cases_path": "/home/enoch/Documents/comp5541/phase4_evaluation/results/trackb_runs/79a5eda1-a7fe-4e77-adc6-3d446bd4053a/_uploads/trackb_eval_cases.jsonl",
+  "model": "deepseek-v4-flash",
+  "temperature": 0.0,
+  "cases_run": 5
+}

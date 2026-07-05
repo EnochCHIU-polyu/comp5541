@@ -1,0 +1,37 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What is total revenue for Q1 2026? Return value and unit.",
+    "answer": "109,896 USD millions",
+    "citations": [
+      "\"Revenues $ 90,234 $ 109,896\" (from the Q1 2026 Financial Highlights table on page 1, with column header indicating \"in millions\")",
+      "\"Revenues $ 90,234 $ 109,896\" (from the Consolidated Statements of Income on page 5)."
+    ],
+    "raw_response": "ANSWER: 109,896 USD millions\nCITATIONS: \"Revenues $ 90,234 $ 109,896\" (from the Q1 2026 Financial Highlights table on page 1, with column header indicating \"in millions\"); \"Revenues $ 90,234 $ 109,896\" (from the Consolidated Statements of Income on page 5).",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

@@ -1,0 +1,360 @@
+# Alphabet-Q1-2026-Earnings-Slides
+
+## Page 1
+
+Q1 2026 Earnings 
+April 29, 2026
+
+## Page 2
+
+Note About Forward-Looking Statements 
+and Non-GAAP Financial Measures
+Q1 2026 Earnings
+This presentation may contain forward-looking statements regarding our business, operations, and 
+financial performance. Such statements are based on current expectations and assumptions that are 
+subject to a number of risks and uncertainties. Actual results could differ materially. Please refer to our 
+Forms 10-K and 10-Q, including the risk factors. We undertake no obligation to update any forward-looking 
+statement, except as required by law. Given these risks and uncertainties, investors are cautioned not to 
+place undue reliance on such forward-looking statements.
+We present both GAAP and non-GAAP financial measures in this presentation. A reconciliation of 
+non-GAAP to GAAP measures is included in this presentation and in the most recent earnings press 
+release, which is distributed and available to the public through our Investor Relations website located at 
+abc.xyz/investor.
+
+## Page 3
+
+Earnings Highlights
+Q1 2026 Earnings
+Google Cloud
+~350M
+Paid subscriptions
+Across Google One, 
+YouTube, Other
++63%
+Q1 Y/Y Cloud revenue 
+growth,
+$460B+ backlog,
+Gemini Enterprise paid 
+MAUs +40% Q/Q
+Search & Other
++19%
+Q1 Y/Y Search & Other 
+revenue 
+growth
+Across 1P models, including 
+Gemini via Direct API usage
+16B+
+Tokens per 
+minute (+60% Q/Q)
+500K+
+Waymo fully 
+autonomous rides 
+per week
+Waymo
+
+## Page 4
+
+in Millions, except Percentages and EPS; unaudited
+Revenues
+Costs and Expenses:
+Cost of Revenues
+Research and Development
+Sales and Marketing
+General and Administrative
+Total Costs and Expenses
+Income from operations
+Other income (expense), net
+Income before income taxes
+Provision for income taxes
+Net income
+Diluted EPS
+$90,234 
+36,361
+13,556
+6,172
+3,539
+59,628
+30,606
+11,183
+41,789
+7,249
+$34,540 
+$109,896
+41,271 
+17,032 
+7,606
+4,291 
+70,200
+39,696 
+37,716
+77,412 
+14,834
+$62,578 
+$5.11
+22%
+14%
+26%
+23%
+21%
+18%
+30% 
+237%
+85% 
+105% 
+81% 
+82%$2.81
+Q1'25 Q1'26 Y/Y
+Q1 2026 Earnings
+
+## Page 5
+
+$90,234
+$109,896
+Q1’25 Q1’26
+Y/Y Growth +12% +22%
+$100,000
+$60,000
+$70,000
+$80,000
+$90,000
+$110,000
+$120,000
+in Millions, except Percentages; unaudited
+Q1 2026 Earnings
+Revenues ($MM)
+$0
+$10,000
+$20,000
+$30,000
+$40,000
+$30,606
+$39,696
+Q1’25 Q1’26
+Operating Margin 33.9% 36.1%
+$50,000
+Operating Income ($MM)
+
+## Page 6
+
+in Millions, except Percentages; unaudited
+$0
+Q1’25 Q1’26
+Operating Expenses ($MM)
+Sales & MarketingResearch & Development General & Administrative
+  
+$0
+$10,000
+$20,000
+$30,000
+$40,000 $36,361
+$41,271
+Q1’25 Q1’26
+Cost of Revenues ($MM)
+$15,228 
+$13,748 
+Total TAC Other Cost of Revenues
+Y/Y Growth +8% +14% Y/Y Growth 9% +24%
+$10,000
+$20,000
+$30,000
+$40,000
+  
+$23,267 
+$6,172 
+$7,606 
+$17,032 $13,556 
+$28,929 
+$50,000 $50,000
+$3,539 
+$4,291 
+$22,613
+$26,043
+Q1 2026 Earnings
+
+## Page 7
+
+$40,000
+Q1’25 Q1’26
+Revenues ($MM)
+Operating Income ($MM)
+$60,000
+$80,000
+$100,000
+$77,264
+Google NetworkGoogle Search & Other YouTube Ads
+Subscriptions, Platforms & Devices
+ 
+ 
+$50,702 
+ 
+$8,927 
+$7,256 
+ 
+ $9,883 
+$60,399 
+ $6,971 
+Y/Y Growth +10% +16% Operating Margin
+ 42.3%
+45.3%
++19% Y/Y
+-4% Y/Y
++11% Y/Y
++19% Y/Y
+$10,000
+Q1’25 Q1’26
+$20,000
+$30,000
+$40,000
+$32,682 
+$89,637 
+$40,589 
+in Millions, except Percentages; unaudited
+$10,379 
+$12,384 
+Q1 2026 Earnings
+
+## Page 8
+
+Q1’25 Q1’26
+Operating Income ($MM)
+$1,000
+$2,000
+$3,000
+$2,177 
+$6,598 
+Operating Margin 17.8% 32.9%
+$0
+Q1’25 Q1’26
+Revenues ($MM)
+$12,260
+$20,028
+Y/Y Growth +28% +63%
+$4,000
+$5,000
+$10,000
+$15,000
+$20,000
+$5,000
+in Millions, except Percentages; unaudited
+Q1 2026 Earnings
+
+## Page 9
+
+$5,000
+Capital Expenditures ($MM)
+$10,000
+$15,000
+$20,000
+Q1’25 Q2’25
+$35,674 
+$17,197
++107%Y/Y Growth
+Q3’25
+$22,446
+$25,000
+Q4’25
+$23,953
+$27,851
+Q1’26
+$30,000
+in Millions, except Percentages; unaudited
+Q1 2026 Earnings
++43% +70% +83% +95%
+$35,000
+
+## Page 10
+
+Free Cash Flow
+Purchases of property and equipment
+Net cash provided by operating activities
+Trailing Twelve Months Free Cash Flow
+Q1’26 Y/Y
+27%
+-47% 
+-14%
+107% 
+Q1'26
+45,790 
+$10,116
+$64,429
+(35,674)
+in Millions, except Percentages; unaudited
+Q1 2026 Earnings
+Q1'25 Q2'25
+36,150
+(17,197)
+$18,953
+$74,881
+27,747
+$66,728
+(22,446)
+$5,301
+Q3'25
+48,414
+$73,552
+(23,953)
+$24,461
+Q4'25
+52,402
+$73,266
+(27,851)
+$24,551
+*Non-GAAP measure. See following slide for reconciliation of GAAP to Non-GAAP measures
+
+## Page 11
+
+Free Cash Flow
+Less: purchases of property and equipment
+Net cash provided from operating activities
+Net cash provided from operating activities - TTM
+Less: purchases of property and equipment - TTM
+Free Cash Flow - TTM
+Reconciliation of GAAP to Non-GAAP Financial Information
+*TTM = Trailing Twelve Months
+We provide non-GAAP free cash flow for the current quarter and trailing twelve months (“TTM”) because it is a liquidity measure 
+that provides useful information to management and investors about the amount of cash generated by the business that can be 
+used for strategic opportunities, including investing in our business and acquisitions, and to strengthen our balance sheet.
+● Free cash flow: We define free cash flow as net cash provided by operating activities less capital expenditures.
+● TTM free cash flow: We define trailing twelve months free cash flow as net cash provided by operating activities less 
+capital expenditures for the most recent twelve consecutive months.
+in Millions, except Percentages; unaudited
+in millions; unaudited
+Q1 2026 Earnings
+26,640 39,113
+13,454
+(14,276)(13,186)
+24,837
+36,150
+(17,197)
+18,953
+(57,720)
+30,698
+(13,061)
+17,637
+74,881
+27,747
+(22,446)
+5,301
+(66,980)
+133,708
+66,728
+48,414
+(23,953)
+24,461
+151,424
+73,552
+(77,872)
+52,402
+(27,851)
+24,551
+164,713
+73,266
+(91,447)
+Q4’24Q2’24 Q1’25 Q2’25 Q3’25 Q4’25Q3’24 Q1’26
+45,790
+(35,674) 
+10,116
+174,353
+64,429
+(109,924)
+132,601

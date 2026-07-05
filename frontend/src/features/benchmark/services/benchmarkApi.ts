@@ -212,6 +212,83 @@ export interface TrackBEvent {
   payload: Record<string, unknown>;
 }
 
+export interface Harness2BuildRequest {
+  seed_url: string;
+  symbol: string;
+  max_reports: number;
+  horizon_days: number;
+  analysis_profile: "baseline" | "h1_all";
+  model: string;
+  temperature: number;
+}
+
+export interface Harness2UploadBuildRequest {
+  source_file: File;
+  symbol: string;
+  max_reports: number;
+  horizon_days: number;
+  analysis_profile: "baseline" | "h1_all";
+  model: string;
+  temperature: number;
+}
+
+export interface Harness2ReportItem {
+  title: string;
+  source_url: string;
+  pdf_path: string;
+  markdown_path: string;
+  internal_report_path: string;
+  report_date: string | null;
+  predicted_trend: string;
+  actual_trend: string;
+  trend_correct: boolean | null;
+  price_start: number | null;
+  price_end: number | null;
+  summary: string;
+  overview: string;
+  further_direction: string;
+  rating: number;
+}
+
+export interface Harness2TrendPoint {
+  date: string;
+  close: number;
+}
+
+export interface Harness2BuildResponse {
+  run_id: string;
+  created_at: string;
+  seed_url: string;
+  resolved_root_link: string;
+  symbol: string;
+  output_dir: string;
+  reports: Harness2ReportItem[];
+  trend_points: Harness2TrendPoint[];
+  evaluation: {
+    root_link_ok: boolean;
+    pdf_download_rate: number;
+    markdown_conversion_rate: number;
+    internal_report_rate: number;
+    trend_eval_coverage: number;
+    trend_direction_accuracy: number;
+    checklist: Record<string, boolean>;
+  };
+  notes: string[];
+  download_script_path: string;
+  download_script_code: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface Harness2HistoryResponse {
+  runs: Harness2BuildResponse[];
+  total: number;
+  limit: number;
+  q: string | null;
+  symbol: string | null;
+  sort: "created_at" | "run_id" | "symbol";
+  order: "asc" | "desc";
+}
+
 export async function checkBackendHealth(): Promise<{ status: string }> {
   let res: Response;
   try {
@@ -316,7 +393,7 @@ export async function createTrackBRun(
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Create Track B run failed: ${res.status} ${detail}`);
+    throw new Error(`Create Harness 1 run failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBRunCreateResponse>;
 }
@@ -345,9 +422,7 @@ export async function createTrackBUploadRun(params: {
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(
-      `Create Track B upload run failed: ${res.status} ${detail}`,
-    );
+    throw new Error(`Create Harness 1 upload run failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBRunCreateResponse>;
 }
@@ -358,9 +433,76 @@ export async function getTrackBRunStatus(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Track B run status failed: ${res.status} ${detail}`);
+    if (res.status === 404) {
+      throw new Error(`Get Harness 1 run status failed: 404 ${detail}`);
+    }
+    throw new Error(`Get Harness 1 run status failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBRunStatusResponse>;
+}
+
+export async function buildHarness2History(
+  payload: Harness2BuildRequest,
+): Promise<Harness2BuildResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/harness2/history/build`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Build Harness 2 history failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<Harness2BuildResponse>;
+}
+
+export async function buildHarness2HistoryUpload(
+  payload: Harness2UploadBuildRequest,
+): Promise<Harness2BuildResponse> {
+  const formData = new FormData();
+  formData.append("source_file", payload.source_file);
+  formData.append("symbol", payload.symbol);
+  formData.append("max_reports", String(payload.max_reports));
+  formData.append("horizon_days", String(payload.horizon_days));
+  formData.append("analysis_profile", payload.analysis_profile);
+  formData.append("model", payload.model);
+  formData.append("temperature", String(payload.temperature));
+
+  const res = await fetch(`${API_BASE}/api/v1/harness2/history/upload-build`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Build Harness 2 upload history failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<Harness2BuildResponse>;
+}
+
+export async function getHarness2History(params: {
+  limit?: number;
+  q?: string;
+  symbol?: string;
+  sort?: "created_at" | "run_id" | "symbol";
+  order?: "asc" | "desc";
+} = {}): Promise<Harness2HistoryResponse> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params.limit ?? 20));
+  search.set("sort", params.sort ?? "created_at");
+  search.set("order", params.order ?? "desc");
+  if (params.q?.trim()) {
+    search.set("q", params.q.trim());
+  }
+  if (params.symbol?.trim()) {
+    search.set("symbol", params.symbol.trim());
+  }
+
+  const res = await fetch(`${API_BASE}/api/v1/harness2/history?${search.toString()}`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Harness 2 history failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<Harness2HistoryResponse>;
 }
 
 export async function getTrackBMetrics(
@@ -369,7 +511,7 @@ export async function getTrackBMetrics(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/metrics`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Track B metrics failed: ${res.status} ${detail}`);
+    throw new Error(`Get Harness 1 metrics failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBMetricsResponse>;
 }
@@ -380,7 +522,7 @@ export async function getTrackBArtifacts(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/artifacts`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Track B artifacts failed: ${res.status} ${detail}`);
+    throw new Error(`Get Harness 1 artifacts failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBArtifactsResponse>;
 }
@@ -389,12 +531,10 @@ export async function getTrackBHistory(
   limit = 20,
 ): Promise<TrackBHistoryResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
-  const res = await fetch(
-    `${API_BASE}/api/v1/trackb/history?${params.toString()}`,
-  );
+  const res = await fetch(`${API_BASE}/api/v1/trackb/history?${params.toString()}`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Track B history failed: ${res.status} ${detail}`);
+    throw new Error(`Get Harness 1 history failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBHistoryResponse>;
 }
@@ -410,7 +550,7 @@ export async function getTrackBComparison(
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Track B comparison failed: ${res.status} ${detail}`);
+    throw new Error(`Get Harness 1 comparison failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBComparisonResponse>;
 }
@@ -421,7 +561,7 @@ export async function getTrackBReproduce(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/reproduce`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Track B reproduce failed: ${res.status} ${detail}`);
+    throw new Error(`Get Harness 1 reproduce failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBReproduceResponse>;
 }
@@ -430,9 +570,7 @@ export function streamTrackBRunEvents(
   runId: string,
   onEvent: (evt: TrackBEvent) => void,
 ): EventSource {
-  const source = new EventSource(
-    `${API_BASE}/api/v1/trackb/runs/${runId}/stream`,
-  );
+  const source = new EventSource(`${API_BASE}/api/v1/trackb/runs/${runId}/stream`);
   const handler = (event: MessageEvent<string>) => {
     try {
       const payload = JSON.parse(event.data) as TrackBEvent;

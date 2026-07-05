@@ -20,6 +20,7 @@ ensure_project_root_importable()
 
 from .api.routes.audits import router as audits_router
 from .api.routes.benchmark import router as benchmark_router
+from .api.routes.harness2 import router as harness2_router
 from .api.routes.trackb import router as trackb_router
 from .api.routes.vulnerabilities import router as vulnerabilities_router
 
@@ -47,6 +48,7 @@ app.add_middleware(
 
 app.include_router(audits_router)
 app.include_router(benchmark_router)
+app.include_router(harness2_router)
 app.include_router(trackb_router)
 app.include_router(vulnerabilities_router)
 

@@ -36,18 +36,18 @@ TrackBEventType = Literal[
 class TrackBRunCreateRequest(BaseModel):
     report_path: str = "data/report.md"
     cases_path: str = "data/trackb_eval_cases.jsonl"
-    model: str = "DeepSeek-V3.2"
+    model: str = "deepseek-v3.2"
     temperature: float = 0.0
     max_cases: int = Field(default=0, ge=0)
-    batch_size: int = Field(default=1, ge=1)
+    batch_size: int = Field(default=0, ge=0)
     profiles: List[TrackBProfile] = Field(default_factory=lambda: ["baseline"])
 
 
 class TrackBUploadRunRequest(BaseModel):
-    model: str = "DeepSeek-V3.2"
+    model: str = "deepseek-v3.2"
     temperature: float = 0.0
     max_cases: int = Field(default=0, ge=0)
-    batch_size: int = Field(default=1, ge=1)
+    batch_size: int = Field(default=0, ge=0)
     profiles: List[TrackBProfile] = Field(default_factory=lambda: ["baseline"])
 
 

@@ -1,0 +1,170 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "Not available in provided context",
+    "citations": [
+      "None of the provided text contains Alphabet financial data."
+    ],
+    "raw_response": "ANSWER: Not available in provided context\nCITATIONS: None of the provided text contains Alphabet financial data.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "Not available in provided context.",
+    "citations": [
+      "The context does not contain Alphabet financial data."
+    ],
+    "raw_response": "ANSWER: Not available in provided context.\nCITATIONS: The context does not contain Alphabet financial data.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "22%",
+    "citations": [],
+    "raw_response": "ANSWER: 22%\nCITATIONS:",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026 (USD millions)?",
+    "answer": "Not available in provided context.",
+    "citations": [
+      "No relevant financial data found."
+    ],
+    "raw_response": "ANSWER: Not available in provided context.\nCITATIONS: No relevant financial data found.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "Not available in provided context",
+    "citations": [
+      "The provided context is a personal resume and does not contain any financial data or operating margin figures."
+    ],
+    "raw_response": "ANSWER: Not available in provided context\nCITATIONS: The provided context is a personal resume and does not contain any financial data or operating margin figures.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]
