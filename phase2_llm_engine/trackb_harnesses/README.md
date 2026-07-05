@@ -18,10 +18,20 @@ Read these files first:
 
 - [phase2_llm_engine/trackb_harnesses/h0_baseline_prompt.py](h0_baseline_prompt.py)
 - [phase2_llm_engine/financial_trackb_workflow.py](../financial_trackb_workflow.py)
-- [phase2_llm_engine/trackb_harnesses/h1_retrieval.py](h1_retrieval.py)
-- [phase2_llm_engine/trackb_harnesses/h2_numeric_guard.py](h2_numeric_guard.py)
-- [phase2_llm_engine/trackb_harnesses/h3_chronology_guard.py](h3_chronology_guard.py)
-- [phase2_llm_engine/trackb_harnesses/h4_verifier.py](h4_verifier.py)
+- [phase2_llm_engine/trackb_harnesses/h1_code_base.py](h1_code_base.py)
+- [phase2_llm_engine/trackb_harnesses/h2_prompt_base.py](h2_prompt_base.py)
+- [phase2_llm_engine/trackb_harnesses/h3_multi_llm_as_judge.py](h3_multi_llm_as_judge.py)
+- [phase2_llm_engine/trackb_harnesses/h4_evidence_verifier.py](h4_evidence_verifier.py)
+
+Per-file module docs:
+
+- [phase2_llm_engine/trackb_harnesses/h0_baseline_prompt.README.md](h0_baseline_prompt.README.md)
+- [phase2_llm_engine/trackb_harnesses/h1_code_base.README.md](h1_code_base.README.md)
+- [phase2_llm_engine/trackb_harnesses/h2_prompt_base.README.md](h2_prompt_base.README.md)
+- [phase2_llm_engine/trackb_harnesses/h3_multi_llm_as_judge.README.md](h3_multi_llm_as_judge.README.md)
+- [phase2_llm_engine/trackb_harnesses/h4_evidence_verifier.README.md](h4_evidence_verifier.README.md)
+- [phase2_llm_engine/trackb_harnesses/types.README.md](types.README.md)
+- [phase2_llm_engine/trackb_harnesses/workflow.README.md](workflow.README.md)
 
 Run one small sanity check before changing logic:
 

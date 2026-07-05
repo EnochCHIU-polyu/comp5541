@@ -1,0 +1,62 @@
+[
+  {
+    "started_at": "2026-07-05T10:48:10.101220+00:00",
+    "ended_at": "2026-07-05T10:48:16.308406+00:00",
+    "elapsed_ms": 6207.14,
+    "provider": "openai-compatible",
+    "model": "DeepSeek-V3.2",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "message_count": 2,
+    "attempt": 1,
+    "success": true,
+    "process": "batch_primary_answer",
+    "usage": {
+      "prompt_tokens": 567,
+      "completion_tokens": 144,
+      "total_tokens": 711
+    },
+    "error": null,
+    "profile": "h3"
+  },
+  {
+    "started_at": "2026-07-05T10:48:23.106561+00:00",
+    "ended_at": "2026-07-05T10:48:26.304155+00:00",
+    "elapsed_ms": 3197.57,
+    "provider": "openai-compatible",
+    "model": "DeepSeek-V3.2",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "message_count": 2,
+    "attempt": 1,
+    "success": true,
+    "process": "h3_batch_judge",
+    "usage": {
+      "prompt_tokens": 845,
+      "completion_tokens": 101,
+      "total_tokens": 946
+    },
+    "error": null,
+    "profile": "h3"
+  },
+  {
+    "started_at": "2026-07-05T10:48:36.112248+00:00",
+    "ended_at": "2026-07-05T10:48:40.794256+00:00",
+    "elapsed_ms": 4681.96,
+    "provider": "openai-compatible",
+    "model": "DeepSeek-V3.2",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "message_count": 2,
+    "attempt": 1,
+    "success": true,
+    "process": "h3_batch_revision",
+    "usage": {
+      "prompt_tokens": 810,
+      "completion_tokens": 96,
+      "total_tokens": 906
+    },
+    "error": null,
+    "profile": "h3"
+  }
+]

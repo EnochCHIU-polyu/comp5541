@@ -1,0 +1,14 @@
+{
+  "variant_name": "h1",
+  "enabled_harnesses": [
+    "use_h1_retrieval"
+  ],
+  "disabled_harnesses": [
+    "use_h2_numeric_guard",
+    "use_h3_chronology_guard",
+    "use_h4_verifier"
+  ],
+  "is_baseline": false,
+  "is_full_workflow": false,
+  "is_leave_one_out_ablation": false
+}

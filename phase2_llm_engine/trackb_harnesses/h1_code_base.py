@@ -1,4 +1,4 @@
-"""H1 - Retrieval harness for Track B financial report questions."""
+"""H1 - code based harness for financial QA."""
 
 from __future__ import annotations
 

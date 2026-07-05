@@ -679,6 +679,45 @@ export function TrackBPage() {
                         %
                       </div>
                     </div>
+                    {profileSummary.llm_telemetry_summary ? (
+                      <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-2 text-xs">
+                        <p className="font-semibold">LLM telemetry</p>
+                        <p className="aw-subtle mt-1">
+                          requests{" "}
+                          {profileSummary.llm_telemetry_summary.total_requests}{" "}
+                          | success{" "}
+                          {profileSummary.llm_telemetry_summary.success_count} |
+                          failed{" "}
+                          {profileSummary.llm_telemetry_summary.failure_count}
+                        </p>
+                        <p className="aw-subtle">
+                          avg latency{" "}
+                          {profileSummary.llm_telemetry_summary.avg_elapsed_ms.toFixed(
+                            1,
+                          )}{" "}
+                          ms | total tokens{" "}
+                          {profileSummary.llm_telemetry_summary.total_tokens}
+                        </p>
+                      </div>
+                    ) : null}
+                    {profileSummary.llm_telemetry_preview &&
+                    profileSummary.llm_telemetry_preview.length > 0 ? (
+                      <div className="mt-3 space-y-1 rounded-md border border-slate-200 p-2 text-xs">
+                        <p className="font-semibold">Recent LLM requests</p>
+                        {profileSummary.llm_telemetry_preview
+                          .slice(-5)
+                          .map((row, idx) => (
+                            <p
+                              key={`${row.started_at}-${idx}`}
+                              className="aw-subtle"
+                            >
+                              {row.process} |{" "}
+                              {Math.round(Number(row.elapsed_ms) || 0)} ms | tok{" "}
+                              {row.usage?.total_tokens ?? "-"}
+                            </p>
+                          ))}
+                      </div>
+                    ) : null}
                     <div className="mt-3 space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                         Wrong cases

@@ -9,20 +9,26 @@ This module provides:
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import json
 import re
 from typing import Any, Callable
 
 from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
-from phase2_llm_engine.llm_client import query_llm
-from phase2_llm_engine.trackb_harnesses.h0_baseline import (
+from phase2_llm_engine.llm_client import llm_process, query_llm
+from phase2_llm_engine.trackb_harnesses.h0_baseline_prompt import (
     build_batch_prompt,
     extract_json_array,
     parse_answer,
 )
-from phase2_llm_engine.trackb_harnesses.h1_retrieval import build_retrieval_context, retrieve_chunks
-from phase2_llm_engine.trackb_harnesses.h2_numeric_guard import build_h2_prompt, build_numeric_hint, numeric_guard
-from phase2_llm_engine.trackb_harnesses.h3_chronology_guard import build_h3_review_prompts, chronology_guard
-from phase2_llm_engine.trackb_harnesses.h4_verifier import repair_answer_deterministic, verify_support
+from phase2_llm_engine.trackb_harnesses.h1_code_base import build_retrieval_context, retrieve_chunks
+from phase2_llm_engine.trackb_harnesses.h2_prompt_base import build_h2_prompt, build_numeric_hint, numeric_guard
+from phase2_llm_engine.trackb_harnesses.h3_multi_llm_as_judge import (
+    build_h3_batch_revision_prompt,
+    build_h3_batch_judge_prompt,
+    build_h3_review_prompts,
+    chronology_guard,
+)
+from phase2_llm_engine.trackb_harnesses.h4_evidence_verifier import repair_answer_deterministic, verify_support
 
 _SENT_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 _BATCH_CONTEXT_CHARS_PER_CASE = 2400
@@ -131,6 +137,16 @@ def _parse_answer(raw: str) -> tuple[str, list[str]]:
     return parse_answer(raw)
 
 
+def _query_llm_with_process(
+    process_name: str,
+    messages: list[dict[str, str]],
+    model: str,
+    temperature: float,
+) -> str:
+    with llm_process(process_name):
+        return query_llm(messages, model=model, temperature=temperature)
+
+
 @dataclass
 class FinancialWorkflowResult:
     case_id: str
@@ -158,7 +174,12 @@ def run_financial_workflow(
 
     baseline_only = not (use_h1_retrieval or use_h2_numeric_guard or use_h3_chronology_guard or use_h4_verifier)
     if baseline_only:
-        raw = query_llm(_build_independent_baseline_prompt(case.question), model=model, temperature=temperature)
+        raw = _query_llm_with_process(
+            "baseline_single_answer",
+            _build_independent_baseline_prompt(case.question),
+            model=model,
+            temperature=temperature,
+        )
         answer, citations = _parse_answer(raw)
         _emit_progress(progress_callback, case.case_id, "llm_answer", "completed", {"batch": False})
         _emit_progress(progress_callback, case.case_id, "workflow", "completed", {"batch": False})
@@ -213,7 +234,7 @@ def run_financial_workflow(
         messages = build_h2_prompt(case.question, context, hint_block="\n\n".join(hint_blocks))
     else:
         messages = _build_independent_baseline_prompt(case.question)
-    raw = query_llm(messages, model=model, temperature=temperature)
+    raw = _query_llm_with_process("primary_answer", messages, model=model, temperature=temperature)
     answer, citations = _parse_answer(raw)
     _emit_progress(progress_callback, case.case_id, "llm_answer", "completed", {"batch": False})
 
@@ -248,7 +269,7 @@ def run_financial_workflow(
             evidence_keywords=case.evidence_keywords,
         )
         reviewer_model = h3_reviewer_model or model
-        judge_raw = query_llm(judge_prompt, model=reviewer_model, temperature=0.0)
+        judge_raw = _query_llm_with_process("h3_judge", judge_prompt, model=reviewer_model, temperature=0.0)
         judge_answer, _ = _parse_answer(judge_raw)
         diagnostics["h3_review"] = {
             "reviewer_model": reviewer_model,
@@ -263,7 +284,7 @@ def run_financial_workflow(
             {"judge_result": judge_answer},
         )
         if judge_answer.upper().startswith("FAIL"):
-            revise_raw = query_llm(revise_prompt, model=reviewer_model, temperature=0.0)
+            revise_raw = _query_llm_with_process("h3_revision", revise_prompt, model=reviewer_model, temperature=0.0)
             revised_answer, revised_citations = _parse_answer(revise_raw)
             if revised_answer:
                 answer = revised_answer
@@ -368,11 +389,47 @@ def run_financial_workflow_batch(
 
     baseline_only = not (use_h1_retrieval or use_h2_numeric_guard or use_h3_chronology_guard or use_h4_verifier)
     if baseline_only:
-        results: list[FinancialWorkflowResult] = []
+        batch_items = [
+            {
+                "case_id": case.case_id,
+                "question": case.question,
+                "hint_block": "",
+                "context": "",
+            }
+            for case in cases
+        ]
         for case in cases:
             _emit_progress(progress_callback, case.case_id, "llm_batch", "started", {"batch": True})
-            raw = query_llm(_build_independent_baseline_prompt(case.question), model=model, temperature=temperature)
-            answer, citations = _parse_answer(raw)
+
+        raw = _query_llm_with_process(
+            "baseline_batch_answer",
+            build_batch_prompt(batch_items, strict=False),
+            model=model,
+            temperature=temperature,
+        )
+        parsed_rows = extract_json_array(raw)
+        by_id: dict[str, dict[str, Any]] = {}
+        for row in parsed_rows:
+            key = str(row.get("case_id", "")).strip()
+            if key:
+                by_id[key] = row
+
+        results: list[FinancialWorkflowResult] = []
+        for idx, case in enumerate(cases):
+            row = by_id.get(case.case_id)
+            if row is None and idx < len(parsed_rows):
+                row = parsed_rows[idx]
+
+            answer = ""
+            citations: list[str] = []
+            if isinstance(row, dict):
+                answer = str(row.get("answer", "")).strip()
+                raw_citations = row.get("citations", [])
+                if isinstance(raw_citations, list):
+                    citations = [str(c).strip() for c in raw_citations if str(c).strip()]
+                elif isinstance(raw_citations, str):
+                    citations = [c.strip() for c in raw_citations.split(";") if c.strip()]
+
             _emit_progress(progress_callback, case.case_id, "llm_answer", "completed", {"batch": True})
             _emit_progress(progress_callback, case.case_id, "workflow", "completed", {"batch": True})
             results.append(
@@ -436,13 +493,142 @@ def run_financial_workflow_batch(
     messages = build_batch_prompt(batch_items, strict=use_h2_numeric_guard)
     for case in cases:
         _emit_progress(progress_callback, case.case_id, "llm_batch", "started", {"batch": True})
-    raw = query_llm(messages, model=model, temperature=temperature)
+    raw = _query_llm_with_process("batch_primary_answer", messages, model=model, temperature=temperature)
     parsed_rows = extract_json_array(raw)
     by_id: dict[str, dict[str, Any]] = {}
     for row in parsed_rows:
         key = str(row.get("case_id", "")).strip()
         if key:
             by_id[key] = row
+
+    judge_by_case: dict[str, str] = {}
+    draft_by_case: dict[str, tuple[str, list[str]]] = {}
+    revised_by_case: dict[str, tuple[str, list[str], str]] = {}
+    if use_h3_chronology_guard:
+        reviewer_model = h3_reviewer_model or model
+        judge_items: list[dict[str, str]] = []
+        for idx, case in enumerate(cases):
+            row = by_id.get(case.case_id)
+            if row is None and idx < len(parsed_rows):
+                row = parsed_rows[idx]
+
+            draft_answer = ""
+            draft_citations: list[str] = []
+            if isinstance(row, dict):
+                draft_answer = str(row.get("answer", "")).strip()
+                raw_citations = row.get("citations", [])
+                if isinstance(raw_citations, list):
+                    draft_citations = [str(c).strip() for c in raw_citations if str(c).strip()]
+                elif isinstance(raw_citations, str):
+                    draft_citations = [c.strip() for c in raw_citations.split(";") if c.strip()]
+
+            draft_by_case[case.case_id] = (draft_answer, draft_citations)
+
+            judge_items.append(
+                {
+                    "case_id": case.case_id,
+                    "question": case.question,
+                    "context": context_by_case_id.get(case.case_id, report_text),
+                    "draft_answer": draft_answer,
+                    "draft_citations": "; ".join(draft_citations) if draft_citations else "NONE",
+                    "expected_unit": case.expected_unit or "(none)",
+                    "evidence_keywords": ", ".join(case.evidence_keywords or []) or "(none)",
+                }
+            )
+
+        for case in cases:
+            _emit_progress(progress_callback, case.case_id, "h3_batch_judge", "started", {"batch": True})
+        judge_raw = _query_llm_with_process(
+            "h3_batch_judge",
+            build_h3_batch_judge_prompt(judge_items),
+            model=reviewer_model,
+            temperature=0.0,
+        )
+        judge_rows = extract_json_array(judge_raw)
+        for row in judge_rows:
+            key = str(row.get("case_id", "")).strip()
+            judge = str(row.get("judge", "")).strip()
+            if key and judge:
+                judge_by_case[key] = judge
+        for idx, case in enumerate(cases):
+            if case.case_id not in judge_by_case and idx < len(judge_rows):
+                fallback = judge_rows[idx]
+                if isinstance(fallback, dict):
+                    judge_by_case[case.case_id] = str(fallback.get("judge", "")).strip()
+            _emit_progress(
+                progress_callback,
+                case.case_id,
+                "h3_batch_judge",
+                "completed",
+                {"judge_result": judge_by_case.get(case.case_id, "")},
+            )
+
+        failed_cases = [
+            case for case in cases if str(judge_by_case.get(case.case_id, "")).upper().startswith("FAIL")
+        ]
+        if failed_cases:
+            revision_items: list[dict[str, str]] = []
+            for case in failed_cases:
+                draft_answer, draft_citations = draft_by_case.get(case.case_id, ("", []))
+                revision_items.append(
+                    {
+                        "case_id": case.case_id,
+                        "question": case.question,
+                        "context": context_by_case_id.get(case.case_id, report_text),
+                        "draft_answer": draft_answer,
+                        "draft_citations": "; ".join(draft_citations) if draft_citations else "NONE",
+                        "expected_unit": case.expected_unit or "(none)",
+                        "evidence_keywords": ", ".join(case.evidence_keywords or []) or "(none)",
+                    }
+                )
+
+            for case in failed_cases:
+                _emit_progress(progress_callback, case.case_id, "h3_batch_revision", "started", {"batch": True})
+
+            revise_raw = _query_llm_with_process(
+                "h3_batch_revision",
+                build_h3_batch_revision_prompt(revision_items),
+                model=reviewer_model,
+                temperature=0.0,
+            )
+            revise_rows = extract_json_array(revise_raw)
+            for row in revise_rows:
+                key = str(row.get("case_id", "")).strip()
+                if not key:
+                    continue
+                answer = str(row.get("answer", "")).strip()
+                citations: list[str] = []
+                raw_citations = row.get("citations", [])
+                if isinstance(raw_citations, list):
+                    citations = [str(c).strip() for c in raw_citations if str(c).strip()]
+                elif isinstance(raw_citations, str):
+                    citations = [c.strip() for c in raw_citations.split(";") if c.strip()]
+                revised_by_case[key] = (answer, citations, json.dumps(row, ensure_ascii=False))
+
+            for idx, case in enumerate(failed_cases):
+                if case.case_id not in revised_by_case and idx < len(revise_rows):
+                    row = revise_rows[idx]
+                    if isinstance(row, dict):
+                        answer = str(row.get("answer", "")).strip()
+                        citations = row.get("citations", [])
+                        parsed_citations: list[str] = []
+                        if isinstance(citations, list):
+                            parsed_citations = [str(c).strip() for c in citations if str(c).strip()]
+                        elif isinstance(citations, str):
+                            parsed_citations = [c.strip() for c in citations.split(";") if c.strip()]
+                        revised_by_case[case.case_id] = (
+                            answer,
+                            parsed_citations,
+                            json.dumps(row, ensure_ascii=False),
+                        )
+
+                _emit_progress(
+                    progress_callback,
+                    case.case_id,
+                    "h3_batch_revision",
+                    "completed",
+                    {"revision_applied": case.case_id in revised_by_case},
+                )
 
     results: list[FinancialWorkflowResult] = []
     for idx, case in enumerate(cases):
@@ -484,20 +670,10 @@ def run_financial_workflow_batch(
             diagnostics["chronology_ok"] = None
 
         if use_h3_chronology_guard:
-            judge_prompt, revise_prompt = build_h3_review_prompts(
-                question=case.question,
-                context=context_by_case_id.get(case.case_id, report_text),
-                draft_answer=answer,
-                draft_citations=citations,
-                expected_unit=case.expected_unit,
-                evidence_keywords=case.evidence_keywords,
-            )
             reviewer_model = h3_reviewer_model or model
-            judge_raw = query_llm(judge_prompt, model=reviewer_model, temperature=0.0)
-            judge_answer, _ = _parse_answer(judge_raw)
+            judge_answer = judge_by_case.get(case.case_id, "")
             diagnostics["h3_review"] = {
                 "reviewer_model": reviewer_model,
-                "judge_raw": judge_raw,
                 "judge_result": judge_answer,
             }
             _emit_progress(
@@ -508,20 +684,23 @@ def run_financial_workflow_batch(
                 {"judge_result": judge_answer},
             )
             if judge_answer.upper().startswith("FAIL"):
-                revise_raw = query_llm(revise_prompt, model=reviewer_model, temperature=0.0)
-                revised_answer, revised_citations = _parse_answer(revise_raw)
-                if revised_answer:
-                    answer = revised_answer
-                if revised_citations:
-                    citations = revised_citations
-                diagnostics["h3_review"]["revision_applied"] = True
-                diagnostics["h3_review"]["revise_raw"] = revise_raw
+                revised = revised_by_case.get(case.case_id)
+                if revised is not None:
+                    revised_answer, revised_citations, revised_raw = revised
+                    if revised_answer:
+                        answer = revised_answer
+                    if revised_citations:
+                        citations = revised_citations
+                    diagnostics["h3_review"]["revision_applied"] = True
+                    diagnostics["h3_review"]["revise_raw"] = revised_raw
+                else:
+                    diagnostics["h3_review"]["revision_applied"] = False
                 _emit_progress(
                     progress_callback,
                     case.case_id,
-                    "h3_revision",
+                    "h3_revision_apply",
                     "completed",
-                    {"revision_applied": True},
+                    {"revision_applied": diagnostics["h3_review"]["revision_applied"]},
                 )
             else:
                 diagnostics["h3_review"]["revision_applied"] = False

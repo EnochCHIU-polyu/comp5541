@@ -10,9 +10,13 @@ Wraps the OpenAI and Anthropic APIs with:
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
+from datetime import datetime, timezone
 import time
 import logging
-from typing import Optional
+import threading
+from typing import Any, Callable, Optional
 
 from config import (
     OPENAI_API_KEY,
@@ -42,6 +46,95 @@ _RETRY_BASE_DELAY = 2  # seconds (doubles each retry: 2, 4, 8)
 _openai_client = None
 _anthropic_client = None
 _github_client = None
+
+_LLM_TELEMETRY_COLLECTOR: ContextVar[Optional[Callable[[dict[str, Any]], None]]] = ContextVar(
+    "llm_telemetry_collector",
+    default=None,
+)
+_LLM_PROCESS: ContextVar[str] = ContextVar("llm_process", default="unspecified")
+_LLM_SHUTDOWN_REQUESTED = threading.Event()
+
+
+def request_llm_shutdown() -> None:
+    """Signal that no new LLM calls should start (used during app shutdown)."""
+    _LLM_SHUTDOWN_REQUESTED.set()
+
+
+def clear_llm_shutdown() -> None:
+    """Clear shutdown signal (used when app starts/restarts)."""
+    _LLM_SHUTDOWN_REQUESTED.clear()
+
+
+def _raise_if_shutdown_requested() -> None:
+    if _LLM_SHUTDOWN_REQUESTED.is_set():
+        raise RuntimeError("LLM client is shutting down; rejecting new requests")
+
+
+def _sleep_interruptible(seconds: float) -> None:
+    if seconds <= 0:
+        return
+    _raise_if_shutdown_requested()
+    interrupted = _LLM_SHUTDOWN_REQUESTED.wait(timeout=seconds)
+    if interrupted:
+        raise RuntimeError("LLM client interrupted by shutdown")
+
+
+@contextmanager
+def collect_llm_telemetry(collector: Optional[Callable[[dict[str, Any]], None]]):
+    token = _LLM_TELEMETRY_COLLECTOR.set(collector)
+    try:
+        yield
+    finally:
+        _LLM_TELEMETRY_COLLECTOR.reset(token)
+
+
+@contextmanager
+def llm_process(process_name: str):
+    token = _LLM_PROCESS.set((process_name or "unspecified").strip() or "unspecified")
+    try:
+        yield
+    finally:
+        _LLM_PROCESS.reset(token)
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _emit_llm_telemetry(payload: dict[str, Any]) -> None:
+    collector = _LLM_TELEMETRY_COLLECTOR.get()
+    if collector is None:
+        return
+    try:
+        collector(payload)
+    except Exception:  # noqa: BLE001
+        logger.debug("LLM telemetry collector raised; ignoring", exc_info=True)
+
+
+def _extract_usage_payload(usage_obj: Any) -> dict[str, Optional[int]]:
+    if usage_obj is None:
+        return {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None}
+
+    if isinstance(usage_obj, dict):
+        prompt = usage_obj.get("prompt_tokens") or usage_obj.get("input_tokens")
+        completion = usage_obj.get("completion_tokens") or usage_obj.get("output_tokens")
+        total = usage_obj.get("total_tokens")
+    else:
+        prompt = getattr(usage_obj, "prompt_tokens", None) or getattr(usage_obj, "input_tokens", None)
+        completion = getattr(usage_obj, "completion_tokens", None) or getattr(usage_obj, "output_tokens", None)
+        total = getattr(usage_obj, "total_tokens", None)
+
+    prompt_i = int(prompt) if isinstance(prompt, (int, float)) else None
+    completion_i = int(completion) if isinstance(completion, (int, float)) else None
+    total_i = int(total) if isinstance(total, (int, float)) else None
+    if total_i is None and prompt_i is not None and completion_i is not None:
+        total_i = prompt_i + completion_i
+
+    return {
+        "prompt_tokens": prompt_i,
+        "completion_tokens": completion_i,
+        "total_tokens": total_i,
+    }
 
 
 def _get_openai_client():
@@ -124,7 +217,7 @@ def _enforce_pause() -> None:
     remaining = API_PAUSE_SECONDS - elapsed
     if remaining > 0:
         logger.debug("Rate-limit pause: sleeping %.1f s", remaining)
-        time.sleep(remaining)
+        _sleep_interruptible(remaining)
     _last_call_time = time.time()
 
 
@@ -162,6 +255,7 @@ def query_llm(
     str
         The model's text response.
     """
+    _raise_if_shutdown_requested()
     _enforce_pause()
 
     model = _normalize_model_name(model or DEFAULT_MODEL)
@@ -177,23 +271,98 @@ def query_llm(
 
     last_exc: Optional[Exception] = None
     for attempt in range(_MAX_RETRIES + 1):
+        _raise_if_shutdown_requested()
+        started_at = _utc_now_iso()
+        started_perf = time.perf_counter()
         try:
             # When OPENAI_BASE_URL is set (e.g. Poe), use OpenAI-compatible client for all models
             if OPENAI_BASE_URL and OPENAI_API_KEY:
                 logger.info("LLM provider selected: openai-compatible (base_url=%s, model=%s)", OPENAI_BASE_URL, model)
-                return _query_openai(messages, model, temperature, max_tokens)
+                result = _query_openai(messages, model, temperature, max_tokens, provider_label="openai-compatible")
+                _emit_llm_telemetry(
+                    {
+                        "started_at": started_at,
+                        "ended_at": _utc_now_iso(),
+                        "elapsed_ms": round((time.perf_counter() - started_perf) * 1000, 2),
+                        "provider": result["provider"],
+                        "model": model,
+                        "temperature": float(temperature),
+                        "max_tokens": int(max_tokens),
+                        "message_count": int(len(messages)),
+                        "attempt": int(attempt + 1),
+                        "success": True,
+                        "process": _LLM_PROCESS.get(),
+                        "usage": result["usage"],
+                        "error": None,
+                    }
+                )
+                return str(result["text"])
 
             if model.startswith("claude"):
                 logger.info("LLM provider selected: anthropic (model=%s)", model)
-                return _query_anthropic(messages, model, temperature, max_tokens)
+                result = _query_anthropic(messages, model, temperature, max_tokens)
+                _emit_llm_telemetry(
+                    {
+                        "started_at": started_at,
+                        "ended_at": _utc_now_iso(),
+                        "elapsed_ms": round((time.perf_counter() - started_perf) * 1000, 2),
+                        "provider": result["provider"],
+                        "model": model,
+                        "temperature": float(temperature),
+                        "max_tokens": int(max_tokens),
+                        "message_count": int(len(messages)),
+                        "attempt": int(attempt + 1),
+                        "success": True,
+                        "process": _LLM_PROCESS.get(),
+                        "usage": result["usage"],
+                        "error": None,
+                    }
+                )
+                return str(result["text"])
 
             if _should_use_github_models(model):
                 logger.info("LLM provider selected: github-models (model=%s)", model)
-                return _query_github(messages, model, temperature, max_tokens)
+                result = _query_github(messages, model, temperature, max_tokens)
+                _emit_llm_telemetry(
+                    {
+                        "started_at": started_at,
+                        "ended_at": _utc_now_iso(),
+                        "elapsed_ms": round((time.perf_counter() - started_perf) * 1000, 2),
+                        "provider": result["provider"],
+                        "model": model,
+                        "temperature": float(temperature),
+                        "max_tokens": int(max_tokens),
+                        "message_count": int(len(messages)),
+                        "attempt": int(attempt + 1),
+                        "success": True,
+                        "process": _LLM_PROCESS.get(),
+                        "usage": result["usage"],
+                        "error": None,
+                    }
+                )
+                return str(result["text"])
 
             try:
                 logger.info("LLM provider selected: openai (model=%s)", model)
-                return _query_openai(messages, model, temperature, max_tokens)
+                result = _query_openai(messages, model, temperature, max_tokens)
+                _emit_llm_telemetry(
+                    {
+                        "started_at": started_at,
+                        "ended_at": _utc_now_iso(),
+                        "elapsed_ms": round((time.perf_counter() - started_perf) * 1000, 2),
+                        "provider": result["provider"],
+                        "model": model,
+                        "temperature": float(temperature),
+                        "max_tokens": int(max_tokens),
+                        "message_count": int(len(messages)),
+                        "attempt": int(attempt + 1),
+                        "success": True,
+                        "process": _LLM_PROCESS.get(),
+                        "usage": result["usage"],
+                        "error": None,
+                    }
+                )
+                return str(result["text"])
             except Exception as openai_exc:  # noqa: BLE001
                 if (GITHUB_TOKEN or OPENAI_API_KEY) and _is_region_block_error(openai_exc):
                     fallback_model = _normalize_model_name(GITHUB_FALLBACK_MODEL)
@@ -201,10 +370,45 @@ def query_llm(
                         "OpenAI request blocked by region policy; retrying via GitHub Models with %s",
                         fallback_model,
                     )
-                    return _query_github(messages, fallback_model, temperature, max_tokens)
+                    result = _query_github(messages, fallback_model, temperature, max_tokens)
+                    _emit_llm_telemetry(
+                        {
+                            "started_at": started_at,
+                            "ended_at": _utc_now_iso(),
+                            "elapsed_ms": round((time.perf_counter() - started_perf) * 1000, 2),
+                            "provider": result["provider"],
+                            "model": fallback_model,
+                            "temperature": float(temperature),
+                            "max_tokens": int(max_tokens),
+                            "message_count": int(len(messages)),
+                            "attempt": int(attempt + 1),
+                            "success": True,
+                            "process": _LLM_PROCESS.get(),
+                            "usage": result["usage"],
+                            "error": None,
+                        }
+                    )
+                    return str(result["text"])
                 raise
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
+            _emit_llm_telemetry(
+                {
+                    "started_at": started_at,
+                    "ended_at": _utc_now_iso(),
+                    "elapsed_ms": round((time.perf_counter() - started_perf) * 1000, 2),
+                    "provider": None,
+                    "model": model,
+                    "temperature": float(temperature),
+                    "max_tokens": int(max_tokens),
+                    "message_count": int(len(messages)),
+                    "attempt": int(attempt + 1),
+                    "success": False,
+                    "process": _LLM_PROCESS.get(),
+                    "usage": {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None},
+                    "error": str(exc),
+                }
+            )
             if _is_context_length_error(exc):
                 logger.error("LLM call failed due to context length overflow; not retrying same payload")
                 raise
@@ -214,7 +418,7 @@ def query_llm(
                     "LLM call failed (attempt %d/%d): %s – retrying in %ds",
                     attempt + 1, _MAX_RETRIES, exc, delay,
                 )
-                time.sleep(delay)
+                _sleep_interruptible(delay)
             else:
                 logger.error("LLM call failed after %d retries: %s", _MAX_RETRIES, exc)
 
@@ -285,7 +489,8 @@ def _query_openai(
     model: str,
     temperature: float,
     max_tokens: int,
-) -> str:
+    provider_label: str = "openai",
+) -> dict[str, Any]:
     logger.info("Sending request to OpenAI Chat Completions (model=%s)", model)
     client = _get_openai_client()
     request_kwargs = {
@@ -306,7 +511,11 @@ def _query_openai(
     logger.info("Received response from OpenAI (model=%s)", model)
     text = response.choices[0].message.content or ""
     _trace_response(model, text)
-    return text
+    return {
+        "text": text,
+        "usage": _extract_usage_payload(getattr(response, "usage", None)),
+        "provider": provider_label,
+    }
 
 
 def _query_github(
@@ -314,7 +523,7 @@ def _query_github(
     model: str,
     temperature: float,
     max_tokens: int,
-) -> str:
+) -> dict[str, Any]:
     logger.info("Sending request to GitHub Models (model=%s)", model)
     client = _get_github_client()
     response = client.chat.completions.create(
@@ -326,7 +535,11 @@ def _query_github(
     logger.info("Received response from GitHub Models (model=%s)", model)
     text = response.choices[0].message.content or ""
     _trace_response(model, text)
-    return text
+    return {
+        "text": text,
+        "usage": _extract_usage_payload(getattr(response, "usage", None)),
+        "provider": "github-models",
+    }
 
 
 def _query_anthropic(
@@ -334,7 +547,7 @@ def _query_anthropic(
     model: str,
     temperature: float,
     max_tokens: int,
-) -> str:
+) -> dict[str, Any]:
     logger.info("Sending request to Anthropic Messages API (model=%s)", model)
     client = _get_anthropic_client()
     # Anthropic separates system prompt from user messages
@@ -356,4 +569,8 @@ def _query_anthropic(
     logger.info("Received response from Anthropic (model=%s)", model)
     text = response.content[0].text if response.content else ""
     _trace_response(model, text)
-    return text
+    return {
+        "text": text,
+        "usage": _extract_usage_payload(getattr(response, "usage", None)),
+        "provider": "anthropic",
+    }

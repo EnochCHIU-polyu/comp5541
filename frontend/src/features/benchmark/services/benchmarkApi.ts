@@ -141,6 +141,36 @@ export interface TrackBArtifactsResponse {
   profiles: Array<{
     profile: string;
     metrics: Record<string, unknown>;
+    llm_telemetry_summary?: {
+      total_requests: number;
+      success_count: number;
+      failure_count: number;
+      total_elapsed_ms: number;
+      avg_elapsed_ms: number;
+      total_prompt_tokens: number;
+      total_completion_tokens: number;
+      total_tokens: number;
+    };
+    llm_telemetry_preview?: Array<{
+      started_at: string;
+      ended_at: string;
+      elapsed_ms: number;
+      provider: string | null;
+      model: string;
+      temperature: number;
+      max_tokens: number;
+      message_count: number;
+      attempt: number;
+      success: boolean;
+      process: string;
+      usage: {
+        prompt_tokens: number | null;
+        completion_tokens: number | null;
+        total_tokens: number | null;
+      };
+      error: string | null;
+      profile?: string;
+    }>;
     wrong_cases: Array<{
       case_id: string;
       question: string;
@@ -171,6 +201,36 @@ export interface TrackBHistoryResponse {
     profiles: Array<{
       profile: string;
       metrics: Record<string, unknown>;
+      llm_telemetry_summary?: {
+        total_requests: number;
+        success_count: number;
+        failure_count: number;
+        total_elapsed_ms: number;
+        avg_elapsed_ms: number;
+        total_prompt_tokens: number;
+        total_completion_tokens: number;
+        total_tokens: number;
+      };
+      llm_telemetry_preview?: Array<{
+        started_at: string;
+        ended_at: string;
+        elapsed_ms: number;
+        provider: string | null;
+        model: string;
+        temperature: number;
+        max_tokens: number;
+        message_count: number;
+        attempt: number;
+        success: boolean;
+        process: string;
+        usage: {
+          prompt_tokens: number | null;
+          completion_tokens: number | null;
+          total_tokens: number | null;
+        };
+        error: string | null;
+        profile?: string;
+      }>;
       wrong_cases: Array<{
         case_id: string;
         question: string;

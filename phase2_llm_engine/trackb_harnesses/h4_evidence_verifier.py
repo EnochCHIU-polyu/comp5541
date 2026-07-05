@@ -6,7 +6,7 @@ import re
 from typing import Any
 
 from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
-from phase2_llm_engine.trackb_harnesses.h1_retrieval import retrieve_chunks
+from phase2_llm_engine.trackb_harnesses.h1_code_base import retrieve_chunks
 
 
 _NUM_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")

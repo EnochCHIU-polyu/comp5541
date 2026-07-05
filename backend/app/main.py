@@ -22,6 +22,8 @@ from .api.routes.audits import router as audits_router
 from .api.routes.benchmark import router as benchmark_router
 from .api.routes.trackb import router as trackb_router
 from .api.routes.vulnerabilities import router as vulnerabilities_router
+from phase2_llm_engine.llm_client import clear_llm_shutdown, request_llm_shutdown
+from .services.trackb_service import trackb_service
 
 
 def _cors_origins() -> list[str]:
@@ -54,3 +56,14 @@ app.include_router(vulnerabilities_router)
 @app.get("/healthz")
 async def healthz() -> Dict[str, str]:
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+async def _startup_reset_llm_shutdown() -> None:
+    clear_llm_shutdown()
+
+
+@app.on_event("shutdown")
+async def _shutdown_trackb_runs() -> None:
+    request_llm_shutdown()
+    await trackb_service.cancel_all_runs(reason="Server shutdown")

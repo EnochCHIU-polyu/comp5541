@@ -56,7 +56,21 @@ class TrackBService:
     def __init__(self) -> None:
         self._runs: Dict[str, TrackBRunState] = {}
         self._queues: Dict[str, List[asyncio.Queue[TrackBEvent]]] = {}
+        self._run_tasks: Dict[str, asyncio.Task[Any]] = {}
+        self._cancel_reasons: Dict[str, str] = {}
         self._lock = threading.Lock()
+
+    def _current_cancel_reason(self, run_id: str) -> str:
+        with self._lock:
+            return self._cancel_reasons.get(run_id, "Track B run cancelled")
+
+    def _is_cancelled(self, run_id: str) -> bool:
+        with self._lock:
+            return run_id in self._cancel_reasons
+
+    def _raise_if_cancelled(self, run_id: str) -> None:
+        if self._is_cancelled(run_id):
+            raise asyncio.CancelledError(self._current_cancel_reason(run_id))
 
     def _repo_root(self) -> Path:
         return Path(__file__).resolve().parents[3]
@@ -253,6 +267,47 @@ class TrackBService:
                 "error_codes": scored.error_codes,
             })
 
+        llm_telemetry: list[Dict[str, Any]] = []
+        llm_telemetry_path = profile_dir / "llm_telemetry.json"
+        if llm_telemetry_path.exists():
+            try:
+                loaded = json.loads(llm_telemetry_path.read_text(encoding="utf-8"))
+                if isinstance(loaded, list):
+                    llm_telemetry = [item for item in loaded if isinstance(item, dict)]
+            except Exception:  # noqa: BLE001
+                llm_telemetry = []
+
+        success_rows = [row for row in llm_telemetry if bool(row.get("success", False))]
+        total_requests = len(llm_telemetry)
+        success_count = len(success_rows)
+        failure_count = total_requests - success_count
+        total_elapsed_ms = sum(float(row.get("elapsed_ms", 0.0) or 0.0) for row in success_rows)
+        total_prompt_tokens = sum(
+            int(((row.get("usage") or {}).get("prompt_tokens") or 0))
+            for row in success_rows
+            if isinstance(row.get("usage"), dict)
+        )
+        total_completion_tokens = sum(
+            int(((row.get("usage") or {}).get("completion_tokens") or 0))
+            for row in success_rows
+            if isinstance(row.get("usage"), dict)
+        )
+        total_tokens = sum(
+            int(((row.get("usage") or {}).get("total_tokens") or 0))
+            for row in success_rows
+            if isinstance(row.get("usage"), dict)
+        )
+        llm_telemetry_summary = {
+            "total_requests": total_requests,
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "total_elapsed_ms": round(total_elapsed_ms, 2),
+            "avg_elapsed_ms": round(total_elapsed_ms / success_count, 2) if success_count else 0.0,
+            "total_prompt_tokens": total_prompt_tokens,
+            "total_completion_tokens": total_completion_tokens,
+            "total_tokens": total_tokens,
+        }
+
         return {
             "profile": profile,
             "metrics": metrics,
@@ -261,6 +316,8 @@ class TrackBService:
             "overall_accuracy": metrics.get("overall_accuracy", 0.0),
             "numeric_accuracy": metrics.get("numeric_accuracy", 0.0),
             "citation_rate": metrics.get("citation_rate", 0.0),
+            "llm_telemetry_summary": llm_telemetry_summary,
+            "llm_telemetry_preview": llm_telemetry[:20],
         }
 
     def _run_dir_history_entry(self, run_dir: Path) -> Dict[str, Any] | None:
@@ -435,8 +492,11 @@ class TrackBService:
         with self._lock:
             self._runs[run_id] = state
             self._queues[run_id] = []
+            self._cancel_reasons.pop(run_id, None)
 
-        asyncio.create_task(self._run_async(run_id))
+        task = asyncio.create_task(self._run_async(run_id))
+        with self._lock:
+            self._run_tasks[run_id] = task
 
         base = f"/api/v1/trackb/runs/{run_id}"
         return TrackBRunCreateResponse(
@@ -490,14 +550,16 @@ class TrackBService:
                 state.stage = "running"
                 state.started_at = datetime.now(timezone.utc)
 
+            self._raise_if_cancelled(run_id)
+
             await self._publish(run_id, "trackb_started", "running", {"profiles": state.profiles})
 
             from phase1_data_pipeline.financial_report_dataset import load_financial_eval_cases
             from phase2_llm_engine.financial_trackb_workflow import (
-                run_financial_workflow,
                 run_financial_workflow_batch,
                 workflow_result_to_dict,
             )
+            from phase2_llm_engine.llm_client import collect_llm_telemetry
             from phase4_evaluation.financial_trackb_scorer import aggregate_scores, score_case
 
             report_text = Path(state.report_path).read_text(encoding="utf-8")
@@ -511,6 +573,7 @@ class TrackBService:
             run_root.mkdir(parents=True, exist_ok=True)
 
             for profile in state.profiles:
+                self._raise_if_cancelled(run_id)
                 with self._lock:
                     p = state.progress[profile]
                     p.status = "running"
@@ -524,6 +587,14 @@ class TrackBService:
 
                 rows: List[Dict[str, Any]] = []
                 scored = []
+                llm_telemetry_rows: List[Dict[str, Any]] = []
+                llm_telemetry_lock = threading.Lock()
+
+                def _on_llm_telemetry(entry: Dict[str, Any]) -> None:
+                    tagged = dict(entry)
+                    tagged["profile"] = str(profile)
+                    with llm_telemetry_lock:
+                        llm_telemetry_rows.append(tagged)
 
                 async def _publish_case_step(
                     case_id: str,
@@ -563,23 +634,24 @@ class TrackBService:
                                 loop,
                             )
 
-                        return await to_thread(
-                            run_financial_workflow_batch,
-                            report_text=report_text,
-                            cases=case_batch,
-                            model=state.model,
-                            temperature=state.temperature,
-                            use_h1_retrieval=flags["use_h1_retrieval"],
-                            use_h2_numeric_guard=flags["use_h2_numeric_guard"],
-                            use_h3_chronology_guard=flags["use_h3_chronology_guard"],
-                            use_h4_verifier=flags["use_h4_verifier"],
-                            progress_callback=_on_step,
-                        )
+                        def _run_batch_in_thread() -> list[Any]:
+                            with collect_llm_telemetry(_on_llm_telemetry):
+                                return run_financial_workflow_batch(
+                                    report_text=report_text,
+                                    cases=case_batch,
+                                    model=state.model,
+                                    temperature=state.temperature,
+                                    use_h1_retrieval=flags["use_h1_retrieval"],
+                                    use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                    use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                    use_h4_verifier=flags["use_h4_verifier"],
+                                    progress_callback=_on_step,
+                                )
+
+                        return await to_thread(_run_batch_in_thread)
                     except Exception as exc:  # noqa: BLE001
                         if not _is_context_length_error(exc):
                             if len(case_batch) == 1:
-                                single = case_batch[0]
-
                                 def _on_single_step(
                                     case_id: str,
                                     step: str,
@@ -591,27 +663,27 @@ class TrackBService:
                                         loop,
                                     )
 
-                                wf = await to_thread(
-                                    run_financial_workflow,
-                                    report_text=report_text,
-                                    case=single,
-                                    model=state.model,
-                                    temperature=state.temperature,
-                                    use_h1_retrieval=flags["use_h1_retrieval"],
-                                    use_h2_numeric_guard=flags["use_h2_numeric_guard"],
-                                    use_h3_chronology_guard=flags["use_h3_chronology_guard"],
-                                    use_h4_verifier=flags["use_h4_verifier"],
-                                    progress_callback=_on_single_step,
-                                )
-                                return [wf]
+                                def _run_single_batch_in_thread() -> list[Any]:
+                                    with collect_llm_telemetry(_on_llm_telemetry):
+                                        return run_financial_workflow_batch(
+                                            report_text=report_text,
+                                            cases=case_batch,
+                                            model=state.model,
+                                            temperature=state.temperature,
+                                            use_h1_retrieval=flags["use_h1_retrieval"],
+                                            use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                            use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                            use_h4_verifier=flags["use_h4_verifier"],
+                                            progress_callback=_on_single_step,
+                                        )
+
+                                return await to_thread(_run_single_batch_in_thread)
                             mid = max(1, len(case_batch) // 2)
                             left = await _run_batch_with_fallback(case_batch[:mid])
                             right = await _run_batch_with_fallback(case_batch[mid:])
                             return left + right
 
                         if len(case_batch) == 1:
-                            single = case_batch[0]
-
                             def _on_single_step(
                                 case_id: str,
                                 step: str,
@@ -623,19 +695,21 @@ class TrackBService:
                                     loop,
                                 )
 
-                            wf = await to_thread(
-                                run_financial_workflow,
-                                report_text=report_text,
-                                case=single,
-                                model=state.model,
-                                temperature=state.temperature,
-                                use_h1_retrieval=True,
-                                use_h2_numeric_guard=flags["use_h2_numeric_guard"],
-                                use_h3_chronology_guard=flags["use_h3_chronology_guard"],
-                                use_h4_verifier=flags["use_h4_verifier"],
-                                progress_callback=_on_single_step,
-                            )
-                            return [wf]
+                            def _run_single_batch_in_thread() -> list[Any]:
+                                with collect_llm_telemetry(_on_llm_telemetry):
+                                    return run_financial_workflow_batch(
+                                        report_text=report_text,
+                                        cases=case_batch,
+                                        model=state.model,
+                                        temperature=state.temperature,
+                                        use_h1_retrieval=True,
+                                        use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                        use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                        use_h4_verifier=flags["use_h4_verifier"],
+                                        progress_callback=_on_single_step,
+                                    )
+
+                            return await to_thread(_run_single_batch_in_thread)
 
                         mid = max(1, len(case_batch) // 2)
                         left = await _run_batch_with_fallback(case_batch[:mid])
@@ -646,6 +720,7 @@ class TrackBService:
                 batch_size = max(1, int(state.batch_size or 1))
                 loop = asyncio.get_running_loop()
                 for start in range(0, len(cases), batch_size):
+                    self._raise_if_cancelled(run_id)
                     case_batch = cases[start : start + batch_size]
                     for case in case_batch:
                         await _publish_case_step(case.case_id, "workflow", "started", {"batch": batch_size > 1})
@@ -665,19 +740,22 @@ class TrackBService:
                                     loop,
                                 )
 
-                            wf = await to_thread(
-                                run_financial_workflow,
-                                report_text=report_text,
-                                case=single,
-                                model=state.model,
-                                temperature=state.temperature,
-                                use_h1_retrieval=flags["use_h1_retrieval"],
-                                use_h2_numeric_guard=flags["use_h2_numeric_guard"],
-                                use_h3_chronology_guard=flags["use_h3_chronology_guard"],
-                                use_h4_verifier=flags["use_h4_verifier"],
-                                progress_callback=_on_single_step,
-                            )
-                            wf_batch.append(wf)
+                            def _run_single_batch_in_thread() -> list[Any]:
+                                with collect_llm_telemetry(_on_llm_telemetry):
+                                    return run_financial_workflow_batch(
+                                        report_text=report_text,
+                                        cases=[single],
+                                        model=state.model,
+                                        temperature=state.temperature,
+                                        use_h1_retrieval=flags["use_h1_retrieval"],
+                                        use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                        use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                        use_h4_verifier=flags["use_h4_verifier"],
+                                        progress_callback=_on_single_step,
+                                    )
+
+                            single_batch = await to_thread(_run_single_batch_in_thread)
+                            wf_batch.extend(single_batch)
                     case_by_id = {c.case_id: c for c in case_batch}
 
                     for idx_in_batch, wf in enumerate(wf_batch):
@@ -735,6 +813,10 @@ class TrackBService:
                     json.dumps(variant, indent=2, ensure_ascii=False),
                     encoding="utf-8",
                 )
+                (profile_dir / "llm_telemetry.json").write_text(
+                    json.dumps(llm_telemetry_rows, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
 
                 with self._lock:
                     state.metrics_by_profile[str(profile)] = metrics
@@ -764,6 +846,15 @@ class TrackBService:
                 "completed",
                 {"profiles": state.profiles},
             )
+        except asyncio.CancelledError as exc:
+            reason = str(exc) or self._current_cancel_reason(run_id)
+            with self._lock:
+                state = self._runs[run_id]
+                state.status = "failed"
+                state.stage = "failed"
+                state.error = reason
+                state.finished_at = datetime.now(timezone.utc)
+            await self._publish(run_id, "trackb_failed", "failed", {"error": reason})
         except Exception as exc:  # noqa: BLE001
             with self._lock:
                 state = self._runs[run_id]
@@ -772,6 +863,45 @@ class TrackBService:
                 state.error = str(exc)
                 state.finished_at = datetime.now(timezone.utc)
             await self._publish(run_id, "trackb_failed", "failed", {"error": str(exc)})
+        finally:
+            with self._lock:
+                self._run_tasks.pop(run_id, None)
+                self._cancel_reasons.pop(run_id, None)
+
+    async def cancel_run(self, run_id: str, reason: str = "Cancelled by user") -> TrackBRunStatusResponse:
+        state = self._get_or_restore_state(run_id)
+
+        is_terminal = False
+        with self._lock:
+            is_terminal = state.status in {"completed", "failed"}
+            if not is_terminal:
+                self._cancel_reasons[run_id] = reason
+                task = self._run_tasks.get(run_id)
+                state.status = "failed"
+                state.stage = "failed"
+                state.error = reason
+                state.finished_at = datetime.now(timezone.utc)
+            else:
+                task = None
+
+        if is_terminal:
+            return self.get_status(run_id)
+
+        if task is not None and not task.done():
+            task.cancel(reason)
+
+        await self._publish(run_id, "trackb_failed", "failed", {"error": reason})
+        return self.get_status(run_id)
+
+    async def cancel_all_runs(self, reason: str = "Server shutdown") -> None:
+        with self._lock:
+            run_ids = list(self._run_tasks.keys())
+
+        for run_id in run_ids:
+            try:
+                await self.cancel_run(run_id, reason=reason)
+            except Exception:
+                continue
 
     def get_status(self, run_id: str) -> TrackBRunStatusResponse:
         state = self._get_or_restore_state(run_id)
@@ -808,7 +938,7 @@ class TrackBService:
             artifacts: List[Dict[str, Any]] = []
             profiles: List[Dict[str, Any]] = []
             for profile, profile_dir in state.profile_output_dirs.items():
-                for name in ("predictions.json", "metrics.json", "variant.json"):
+                for name in ("predictions.json", "metrics.json", "variant.json", "llm_telemetry.json"):
                     path = Path(profile_dir) / name
                     if path.exists():
                         artifacts.append(

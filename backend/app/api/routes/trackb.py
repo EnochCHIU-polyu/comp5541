@@ -87,6 +87,14 @@ async def get_trackb_run(run_id: str) -> TrackBRunStatusResponse:
         raise HTTPException(status_code=404, detail="Track B run not found") from exc
 
 
+@router.post("/runs/{run_id}/cancel", response_model=TrackBRunStatusResponse)
+async def cancel_trackb_run(run_id: str) -> TrackBRunStatusResponse:
+    try:
+        return await trackb_service.cancel_run(run_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Track B run not found") from exc
+
+
 @router.get("/runs/{run_id}/metrics", response_model=TrackBMetricsResponse)
 async def get_trackb_metrics(run_id: str) -> TrackBMetricsResponse:
     try:

@@ -1,4 +1,4 @@
-"""H2 - Numeric and unit guard for Track B financial report questions."""
+"""H2 - prompt building for financial QA."""
 
 from __future__ import annotations
 

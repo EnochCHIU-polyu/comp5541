@@ -1,0 +1,113 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "No data available in context.",
+    "citations": [],
+    "raw_response": "```json\n[\n  {\n    \"case_id\": \"C01\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  },\n  {\n    \"case_id\": \"C02\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  },\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "No data available in context.",
+    "citations": [],
+    "raw_response": "```json\n[\n  {\n    \"case_id\": \"C01\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  },\n  {\n    \"case_id\": \"C02\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  },\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "No data available in context.",
+    "citations": [],
+    "raw_response": "```json\n[\n  {\n    \"case_id\": \"C01\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  },\n  {\n    \"case_id\": \"C02\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  },\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"No data available in context.\",\n    \"citations\": []\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "started_at": "2026-07-05T10:27:12.287968+00:00",
+    "ended_at": "2026-07-05T10:27:19.392576+00:00",
+    "elapsed_ms": 7104.58,
+    "provider": "openai-compatible",
+    "model": "DeepSeek-V3.2",
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "message_count": 2,
+    "attempt": 1,
+    "success": true,
+    "process": "baseline_batch_answer",
+    "usage": {
+      "prompt_tokens": 172,
+      "completion_tokens": 130,
+      "total_tokens": 302
+    },
+    "error": null,
+    "profile": "baseline"
+  }
+]
