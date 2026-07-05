@@ -3,10 +3,12 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import importlib
 import json
 import os
 from pathlib import Path
 import threading
+import time
 from typing import Any, Dict, List, Optional
 import uuid
 import shutil
@@ -14,6 +16,15 @@ import subprocess
 import sys
 
 from app.schemas.trackb import (
+    TrackBChatAskRequest,
+    TrackBChatAskResponse,
+    TrackBChatProfileAnswer,
+    TrackBChatSessionCreateRequest,
+    TrackBChatSessionCreateResponse,
+    TrackBChatSessionResponse,
+    TrackBChatTurn,
+    TrackBH1ComponentConfig,
+    TrackBH3LayerConfig,
     TrackBComparisonRequest,
     TrackBComparisonResponse,
     TrackBEvent,
@@ -40,6 +51,8 @@ class TrackBRunState:
     max_cases: int
     batch_size: int
     profiles: List[TrackBProfile]
+    h1_components: List[TrackBH1ComponentConfig] = field(default_factory=list)
+    h3_layers: List[TrackBH3LayerConfig] = field(default_factory=list)
     status: str = "queued"
     stage: str = "queued"
     started_at: Optional[datetime] = None
@@ -52,12 +65,26 @@ class TrackBRunState:
     profile_output_dirs: Dict[str, str] = field(default_factory=dict)
 
 
+@dataclass
+class TrackBChatSessionState:
+    session_id: str
+    created_at: datetime
+    report_path: str
+    report_name: str
+    model: str
+    temperature: float
+    h1_components: List[TrackBH1ComponentConfig] = field(default_factory=list)
+    h3_layers: List[TrackBH3LayerConfig] = field(default_factory=list)
+    turns: List[TrackBChatTurn] = field(default_factory=list)
+
+
 class TrackBService:
     def __init__(self) -> None:
         self._runs: Dict[str, TrackBRunState] = {}
         self._queues: Dict[str, List[asyncio.Queue[TrackBEvent]]] = {}
         self._run_tasks: Dict[str, asyncio.Task[Any]] = {}
         self._cancel_reasons: Dict[str, str] = {}
+        self._chat_sessions: Dict[str, TrackBChatSessionState] = {}
         self._lock = threading.Lock()
 
     def _current_cancel_reason(self, run_id: str) -> str:
@@ -86,6 +113,15 @@ class TrackBService:
         if data_alt.exists():
             return str(data_alt)
         return str(p)
+
+    def _reload_trackb_workflow_modules(self) -> None:
+        import phase2_llm_engine.financial_trackb_workflow as workflow_mod
+        import phase2_llm_engine.trackb_harnesses.h2_prompt_base as h2_mod
+        import phase2_llm_engine.trackb_harnesses.workflow as harness_workflow_mod
+
+        importlib.reload(h2_mod)
+        importlib.reload(workflow_mod)
+        importlib.reload(harness_workflow_mod)
 
     def _temp_run_dir(self, run_id: str) -> Path:
         root = self._repo_root() / "phase4_evaluation" / "results" / "trackb_runs" / run_id / "_uploads"
@@ -228,6 +264,28 @@ class TrackBService:
             "is_leave_one_out_ablation": str(profile).startswith("all_minus_"),
         }
 
+    def _effective_h1_config(self, components: List[TrackBH1ComponentConfig]) -> Dict[str, Any]:
+        enabled = [component for component in components if component.enabled]
+        if not enabled:
+            return {"top_k": 6, "evidence_keywords": []}
+
+        top_k = max(int(component.top_k) for component in enabled)
+        keywords: list[str] = []
+        seen: set[str] = set()
+        for component in enabled:
+            for raw in component.evidence_keywords:
+                token = str(raw).strip()
+                key = token.lower()
+                if not token or key in seen:
+                    continue
+                seen.add(key)
+                keywords.append(token)
+
+        return {
+            "top_k": max(1, min(top_k, 20)),
+            "evidence_keywords": keywords,
+        }
+
     def _read_json_file(self, path: Path) -> Dict[str, Any]:
         if not path.exists():
             return {}
@@ -249,6 +307,8 @@ class TrackBService:
 
         wrong_cases: List[Dict[str, Any]] = []
         for row in predictions if isinstance(predictions, list) else []:
+            if not isinstance(row, dict):
+                continue
             case_id = str(row.get("case_id", ""))
             case = cases.get(case_id)
             if case is None:
@@ -401,7 +461,7 @@ class TrackBService:
         ts = datetime.fromtimestamp(run_dir.stat().st_mtime, timezone.utc)
         progress = {
             p: TrackBProfileProgress(
-                profile=p,
+                profile=p,  # type: ignore[arg-type]
                 status="completed",
                 cases_total=cases_total,
                 cases_completed=cases_total,
@@ -486,6 +546,8 @@ class TrackBService:
             max_cases=req.max_cases,
             batch_size=req.batch_size,
             profiles=req.profiles,
+            h1_components=req.h1_components,
+            h3_layers=req.h3_layers,
             progress=progress,
         )
 
@@ -539,8 +601,159 @@ class TrackBService:
                 max_cases=req.max_cases,
                 batch_size=req.batch_size,
                 profiles=req.profiles,
+                h1_components=req.h1_components,
+                h3_layers=req.h3_layers,
             )
         )
+
+    async def create_chat_session(
+        self,
+        req: TrackBChatSessionCreateRequest,
+        report_file: str,
+        report_name: str,
+    ) -> TrackBChatSessionCreateResponse:
+        session_id = str(uuid.uuid4())
+        upload_dir = self._temp_run_dir(f"chat_{session_id}")
+        report_src = self._prepare_uploaded_file(report_file, upload_dir, report_name)
+        if report_src.suffix.lower() == ".pdf":
+            report_md = self._convert_pdf_with_launcher(report_src, upload_dir)
+        else:
+            report_md = report_src
+
+        created_at = datetime.now(timezone.utc)
+        state = TrackBChatSessionState(
+            session_id=session_id,
+            created_at=created_at,
+            report_path=str(report_md),
+            report_name=report_name,
+            model=req.model,
+            temperature=req.temperature,
+            h1_components=req.h1_components,
+            h3_layers=req.h3_layers,
+        )
+        with self._lock:
+            self._chat_sessions[session_id] = state
+
+        return TrackBChatSessionCreateResponse(
+            session_id=session_id,
+            created_at=created_at,
+            report_path=state.report_path,
+            report_name=state.report_name,
+            model=state.model,
+            temperature=state.temperature,
+        )
+
+    def ask_chat_session(
+        self,
+        session_id: str,
+        req: TrackBChatAskRequest,
+    ) -> TrackBChatAskResponse:
+        from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
+        from phase2_llm_engine.financial_trackb_workflow import run_financial_workflow
+
+        with self._lock:
+            session = self._chat_sessions.get(session_id)
+        if session is None:
+            raise KeyError(session_id)
+
+        harnesses = req.harnesses or ["all"]
+        allowed = {"baseline", "all", "h1", "h2", "h3", "h4"}
+        invalid = [profile for profile in harnesses if profile not in allowed]
+        if invalid:
+            raise ValueError(f"Unsupported profiles: {', '.join(invalid)}")
+
+        selected = set(harnesses)
+        if "baseline" in selected and len(selected) > 1:
+            raise ValueError("baseline cannot be combined with other harnesses")
+        if "all" in selected and len(selected) > 1:
+            raise ValueError("all cannot be combined with other harnesses")
+
+        report_text = Path(session.report_path).read_text(encoding="utf-8")
+        turn_id = str(uuid.uuid4())
+        created_at = datetime.now(timezone.utc)
+
+        case = FinancialEvalCase(
+            case_id=f"chat_{turn_id[:8]}",
+            question=req.question.strip(),
+            answer_type="text",
+            expected_answer="",
+            tolerance=0.0,
+            expected_unit="",
+            arithmetic_expression="",
+            expected_event_order=[],
+            evidence_keywords=[],
+        )
+
+        h1_components = req.h1_components if req.h1_components is not None else session.h1_components
+        h3_layers = req.h3_layers if req.h3_layers is not None else session.h3_layers
+        model = (req.model or session.model).strip() or session.model
+        temperature = req.temperature if req.temperature is not None else session.temperature
+
+        if "all" in selected:
+            selected = {"h1", "h2", "h3", "h4"}
+
+        use_h1 = "h1" in selected
+        use_h2 = "h2" in selected
+        use_h3 = "h3" in selected
+        use_h4 = "h4" in selected
+
+        started = time.perf_counter()
+        wf = run_financial_workflow(
+            report_text=report_text,
+            case=case,
+            model=model,
+            temperature=temperature,
+            use_h1_retrieval=use_h1,
+            use_h2_numeric_guard=use_h2,
+            use_h3_chronology_guard=use_h3,
+            use_h4_verifier=use_h4,
+            h1_config=self._effective_h1_config(h1_components),
+            h3_layers=[layer.model_dump() for layer in h3_layers],
+            force_contextual_baseline=True,
+        )
+        elapsed_ms = round((time.perf_counter() - started) * 1000.0, 2)
+        selected_label = "baseline" if not selected else "+".join(
+            [name for name in ["h1", "h2", "h3", "h4"] if name in selected]
+        )
+        answers = [
+            TrackBChatProfileAnswer(
+                profile=selected_label,
+                answer=wf.answer,
+                citations=wf.citations,
+                diagnostics=wf.diagnostics,
+                elapsed_ms=elapsed_ms,
+            )
+        ]
+
+        turn = TrackBChatTurn(
+            turn_id=turn_id,
+            question=req.question.strip(),
+            created_at=created_at,
+            answers=answers,
+        )
+
+        with self._lock:
+            current = self._chat_sessions.get(session_id)
+            if current is None:
+                raise KeyError(session_id)
+            current.turns.append(turn)
+
+        return TrackBChatAskResponse(session_id=session_id, turn=turn)
+
+    def get_chat_session(self, session_id: str) -> TrackBChatSessionResponse:
+        with self._lock:
+            session = self._chat_sessions.get(session_id)
+            if session is None:
+                raise KeyError(session_id)
+            return TrackBChatSessionResponse(
+                session_id=session.session_id,
+                created_at=session.created_at,
+                report_path=session.report_path,
+                report_name=session.report_name,
+                model=session.model,
+                temperature=session.temperature,
+                turns=list(session.turns),
+            )
 
     async def _run_async(self, run_id: str) -> None:
         try:
@@ -551,6 +764,10 @@ class TrackBService:
                 state.started_at = datetime.now(timezone.utc)
 
             self._raise_if_cancelled(run_id)
+
+            # Ensure latest harness source edits (for example H2 prompt tuning)
+            # are reflected before each new run starts.
+            self._reload_trackb_workflow_modules()
 
             await self._publish(run_id, "trackb_started", "running", {"profiles": state.profiles})
 
@@ -584,6 +801,10 @@ class TrackBService:
 
                 flags = self._profile_flags(profile)
                 variant = self._variant_summary(profile, flags)
+                if flags["use_h1_retrieval"]:
+                    variant["h1_config"] = self._effective_h1_config(state.h1_components)
+                if flags["use_h3_chronology_guard"]:
+                    variant["h3_layers"] = [layer.model_dump() for layer in state.h3_layers]
 
                 rows: List[Dict[str, Any]] = []
                 scored = []
@@ -645,6 +866,8 @@ class TrackBService:
                                     use_h2_numeric_guard=flags["use_h2_numeric_guard"],
                                     use_h3_chronology_guard=flags["use_h3_chronology_guard"],
                                     use_h4_verifier=flags["use_h4_verifier"],
+                                    h1_config=self._effective_h1_config(state.h1_components),
+                                    h3_layers=[layer.model_dump() for layer in state.h3_layers],
                                     progress_callback=_on_step,
                                 )
 
@@ -674,6 +897,8 @@ class TrackBService:
                                             use_h2_numeric_guard=flags["use_h2_numeric_guard"],
                                             use_h3_chronology_guard=flags["use_h3_chronology_guard"],
                                             use_h4_verifier=flags["use_h4_verifier"],
+                                            h1_config=self._effective_h1_config(state.h1_components),
+                                            h3_layers=[layer.model_dump() for layer in state.h3_layers],
                                             progress_callback=_on_single_step,
                                         )
 
@@ -706,6 +931,8 @@ class TrackBService:
                                         use_h2_numeric_guard=flags["use_h2_numeric_guard"],
                                         use_h3_chronology_guard=flags["use_h3_chronology_guard"],
                                         use_h4_verifier=flags["use_h4_verifier"],
+                                        h1_config=self._effective_h1_config(state.h1_components),
+                                        h3_layers=[layer.model_dump() for layer in state.h3_layers],
                                         progress_callback=_on_single_step,
                                     )
 
@@ -751,6 +978,8 @@ class TrackBService:
                                         use_h2_numeric_guard=flags["use_h2_numeric_guard"],
                                         use_h3_chronology_guard=flags["use_h3_chronology_guard"],
                                         use_h4_verifier=flags["use_h4_verifier"],
+                                        h1_config=self._effective_h1_config(state.h1_components),
+                                        h3_layers=[layer.model_dump() for layer in state.h3_layers],
                                         progress_callback=_on_single_step,
                                     )
 
@@ -1055,6 +1284,8 @@ class TrackBService:
                 "max_cases": state.max_cases,
                 "batch_size": state.batch_size,
                 "profiles": state.profiles,
+                "h1_components": [component.model_dump() for component in state.h1_components],
+                "h3_layers": [layer.model_dump() for layer in state.h3_layers],
             },
         )
 

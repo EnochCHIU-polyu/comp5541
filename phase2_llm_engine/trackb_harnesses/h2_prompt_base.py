@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 
 from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
 
@@ -20,10 +19,10 @@ def build_h2_prompt(
         {
             "role": "system",
             "content": (
-                "You are a financial QA assistant for earnings and filings. "
-                "Use only the provided Context. Do not use outside knowledge. "
-                "If evidence is missing, conflicting, or too weak, do not guess. "
-                "Keep the answer concise and preserve exact numeric scale/unit from the evidence."
+                "You are a financial QA assistant for earnings releases, SEC filings, and investor disclosures. "
+                "Answer using only the provided Context and quoted snippets from it. "
+                "Do not use prior knowledge, assumptions, or arithmetic not explicitly supported by Context. "
+                "Ground every material claim in direct evidence, preserve exact units/scales/signs/time periods as written, and stay concise."
             ),
         },
         {
@@ -36,57 +35,24 @@ def build_h2_prompt(
                 f"{context}\n\n"
                 "Output format (strict):\n"
                 "ANSWER: <short answer, <= 25 words>\n"
-                "CITATIONS: <semicolon-separated direct snippets from Context>\n\n"
+                "CITATIONS: <semicolon-separated direct verbatim snippets from Context>\n\n"
                 "Hard constraints:\n"
-                "- Do not invent numbers, entities, dates, or units.\n"
-                "- Prefer exact table/disclosure values over rounded headline statements.\n"
-                "- Every material claim in ANSWER must be grounded by CITATIONS text.\n"
+                "- Use only facts explicitly present in Context.\n"
+                "- Do not invent numbers, entities, dates, percentages, currencies, units, periods, or qualifiers.\n"
+                "- Preserve exact numeric value and representation from Context (including commas, decimals, %, $, bps, million/billion, and sign).\n"
+                "- Never rescale or normalize values (e.g., do not convert million<->billion) unless Context explicitly states the converted value.\n"
+                "- Resolve scale ambiguities conservatively; if unclear, return INSUFFICIENT_EVIDENCE.\n"
+                "- Prefer exact table/disclosure values over rounded narrative summaries when both exist.\n"
+                "- For yes/no questions, ANSWER must begin with Yes or No, followed by <= 20 words of support.\n"
+                "- Every material claim in ANSWER must be directly supported by the quoted CITATIONS snippets.\n"
+                "- CITATIONS must be verbatim excerpts copied from Context; do not paraphrase in CITATIONS.\n"
+                "- If multiple snippets support one claim, include multiple snippets separated by semicolons.\n"
                 "- If evidence is insufficient, answer exactly:\n"
                 "  ANSWER: INSUFFICIENT_EVIDENCE\n"
                 "  CITATIONS: NONE"
             ),
         },
     ]
-
-
-def _extract_first_number(text: str) -> float | None:
-    m = _NUM_RE.search(text)
-    if not m:
-        return None
-    raw = m.group(0).replace(",", "")
-    pct = raw.endswith("%")
-    if pct:
-        raw = raw[:-1]
-    if raw.startswith("(") and raw.endswith(")"):
-        raw = f"-{raw[1:-1]}"
-    try:
-        value = float(raw)
-    except ValueError:
-        return None
-    return value / 100.0 if pct else value
-
-
-def _contains_unit_words(text: str) -> bool:
-    low = text.lower()
-    unit_tokens = ["million", "billion", "thousand", "万元", "亿元", "人民币", "rmb", "%"]
-    return any(token in low for token in unit_tokens)
-
-
-def _unit_bucket(text: str) -> str:
-    low = text.lower()
-    if "billion" in low or "billion" in low or "十亿" in low or "亿元" in low:
-        return "billion"
-    if "million" in low or "millions" in low or "百万" in low:
-        return "million"
-    if "thousand" in low or "thousands" in low or "千元" in low:
-        return "thousand"
-    if "%" in low or "percent" in low or "percentage" in low:
-        return "percent"
-    if "employee" in low or "employees" in low:
-        return "count"
-    if "usd" in low or "rmb" in low or "人民币" in low:
-        return "currency"
-    return ""
 
 
 def _keyword_score(line: str, keywords: list[str] | None, question: str) -> int:
@@ -132,37 +98,3 @@ def build_numeric_hint(report_text: str, case: FinancialEvalCase, top_k: int = 3
         + yn_hint
         + "\nInstruction: preserve the report's exact scale; do not round a table value into a headline approximation."
     )
-
-
-def numeric_guard(answer: str, case: FinancialEvalCase) -> dict[str, Any]:
-    """Return a deterministic numeric/unit sanity check for a case."""
-    pred = _extract_first_number(answer)
-    exp = _extract_first_number(case.expected_answer)
-    numeric_match = None
-    if case.answer_type == "numeric":
-        if pred is None or exp is None:
-            numeric_match = False
-        else:
-            numeric_match = abs(pred - exp) <= max(case.tolerance, 1e-9)
-
-    unit_warning = False
-    expected_bucket = _unit_bucket(case.expected_unit or case.expected_answer)
-    answer_bucket = _unit_bucket(answer)
-    if expected_bucket and answer_bucket and expected_bucket != answer_bucket:
-        unit_warning = True
-    elif case.expected_unit and case.expected_unit.lower() not in answer.lower():
-        # Be lenient when the answer uses a synonymous scale (e.g. "million" vs "USD millions").
-        if not answer_bucket:
-            unit_warning = False
-        else:
-            unit_warning = expected_bucket != answer_bucket
-    elif case.answer_type == "numeric" and _contains_unit_words(case.expected_answer):
-        if not _contains_unit_words(answer):
-            unit_warning = False
-
-    return {
-        "numeric_match": numeric_match,
-        "unit_warning": unit_warning,
-        "pred_value": pred,
-        "expected_value": exp,
-    }

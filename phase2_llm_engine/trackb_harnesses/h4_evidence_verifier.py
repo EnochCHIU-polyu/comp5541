@@ -10,6 +10,7 @@ from phase2_llm_engine.trackb_harnesses.h1_code_base import retrieve_chunks
 
 
 _NUM_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+_H2_NUM_RE = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?%?")
 _WORD_RE = re.compile(r"[a-z]{3,}")
 
 
@@ -155,3 +156,77 @@ def repair_answer_deterministic(
                 actions.append("append_expected_unit")
 
     return repaired_answer, repaired_citations, actions
+
+
+def _h2_extract_first_number(text: str) -> float | None:
+    m = _H2_NUM_RE.search(text)
+    if not m:
+        return None
+    raw = m.group(0).replace(",", "")
+    pct = raw.endswith("%")
+    if pct:
+        raw = raw[:-1]
+    if raw.startswith("(") and raw.endswith(")"):
+        raw = f"-{raw[1:-1]}"
+    try:
+        value = float(raw)
+    except ValueError:
+        return None
+    return value / 100.0 if pct else value
+
+
+def _h2_contains_unit_words(text: str) -> bool:
+    low = text.lower()
+    unit_tokens = ["million", "billion", "thousand", "万元", "亿元", "人民币", "rmb", "%"]
+    return any(token in low for token in unit_tokens)
+
+
+def _h2_unit_bucket(text: str) -> str:
+    low = text.lower()
+    if "billion" in low or "billion" in low or "十亿" in low or "亿元" in low:
+        return "billion"
+    if "million" in low or "millions" in low or "百万" in low:
+        return "million"
+    if "thousand" in low or "thousands" in low or "千元" in low:
+        return "thousand"
+    if "%" in low or "percent" in low or "percentage" in low:
+        return "percent"
+    if "employee" in low or "employees" in low:
+        return "count"
+    if "usd" in low or "rmb" in low or "人民币" in low:
+        return "currency"
+    return ""
+
+
+def h2_numeric_guard(answer: str, case: FinancialEvalCase) -> dict[str, Any]:
+    """Deterministic numeric/unit guard used by H2 compatibility wrapper."""
+    pred = _h2_extract_first_number(answer)
+    exp = _h2_extract_first_number(case.expected_answer)
+    numeric_match = None
+    if case.answer_type == "numeric":
+        if pred is None or exp is None:
+            numeric_match = False
+        else:
+            numeric_match = abs(pred - exp) <= max(case.tolerance, 1e-9)
+
+    unit_warning = False
+    expected_bucket = _h2_unit_bucket(case.expected_unit or case.expected_answer)
+    answer_bucket = _h2_unit_bucket(answer)
+    if expected_bucket and answer_bucket and expected_bucket != answer_bucket:
+        unit_warning = True
+    elif case.expected_unit and case.expected_unit.lower() not in answer.lower():
+        # Be lenient when the answer uses a synonymous scale (e.g. "million" vs "USD millions").
+        if not answer_bucket:
+            unit_warning = False
+        else:
+            unit_warning = expected_bucket != answer_bucket
+    elif case.answer_type == "numeric" and _h2_contains_unit_words(case.expected_answer):
+        if not _h2_contains_unit_words(answer):
+            unit_warning = False
+
+    return {
+        "numeric_match": numeric_match,
+        "unit_warning": unit_warning,
+        "pred_value": pred,
+        "expected_value": exp,
+    }
