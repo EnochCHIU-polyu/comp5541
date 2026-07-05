@@ -28,6 +28,12 @@ VARIANT_FLAGS = {
         "use_h3_chronology_guard": False,
         "use_h4_verifier": False,
     },
+    "baseline_no_context": {
+        "use_h1_retrieval": False,
+        "use_h2_numeric_guard": False,
+        "use_h3_chronology_guard": False,
+        "use_h4_verifier": False,
+    },
     "h1": {
         "use_h1_retrieval": True,
         "use_h2_numeric_guard": False,

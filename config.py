@@ -33,13 +33,15 @@ DEEPSEEK_REASONING_EFFORT: str = os.getenv("DEEPSEEK_REASONING_EFFORT", "").stri
 DEEPSEEK_THINKING_ENABLED: bool = _env_bool("DEEPSEEK_THINKING_ENABLED", False)
 
 # ── LLM Settings ─────────────────────────────────────────────────────────────
-DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "deepseek-v3.2")
+DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "DeepSeek-V3.2")
 GITHUB_FALLBACK_MODEL: str = os.getenv(
 	"GITHUB_FALLBACK_MODEL",
 	"deepseek/DeepSeek-V3-0324",
 )
 # Temperature 0 → deterministic; Temperature 1 → more creative/random
 TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0"))
+# Default max output tokens per LLM response.
+LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "4096"))
 # Maximum tokens the model context window supports
 MAX_CONTEXT_TOKENS: int = int(os.getenv("MAX_CONTEXT_TOKENS", "32000"))
 

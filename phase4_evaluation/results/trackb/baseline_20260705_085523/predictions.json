@@ -1,0 +1,42 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "$109,896 million",
+    "citations": [
+      "Total revenues $ 90,234 $ 109,896",
+      "Total revenues $ 90,234 $ 109,896"
+    ],
+    "raw_response": "ANSWER: $109,896 million\nCITATIONS: Total revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

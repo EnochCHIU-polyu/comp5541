@@ -24,6 +24,7 @@ from config import (
     DEFAULT_MODEL,
     GITHUB_FALLBACK_MODEL,
     TEMPERATURE,
+    LLM_MAX_TOKENS,
     API_PAUSE_SECONDS,
     LLM_TRACE_MESSAGES,
     LLM_TRACE_MAX_CHARS,
@@ -135,7 +136,7 @@ def query_llm(
     messages: list[dict],
     model: Optional[str] = None,
     temperature: Optional[float] = None,
-    max_tokens: int = 2048,
+    max_tokens: int = LLM_MAX_TOKENS,
 ) -> str:
     """
     Send *messages* to the specified LLM and return the text response.
@@ -204,6 +205,9 @@ def query_llm(
                 raise
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
+            if _is_context_length_error(exc):
+                logger.error("LLM call failed due to context length overflow; not retrying same payload")
+                raise
             if attempt < _MAX_RETRIES:
                 delay = _RETRY_BASE_DELAY * (2 ** attempt)
                 logger.warning(
@@ -226,17 +230,38 @@ def _is_region_block_error(exc: Exception) -> bool:
     )
 
 
+def _is_context_length_error(exc: Exception) -> bool:
+    err_text = str(exc).lower()
+    return (
+        "context_length_exceeded" in err_text
+        or "message is too long" in err_text
+        or "context length" in err_text
+    )
+
+
 def _normalize_model_name(model: str) -> str:
     """Map UI-friendly aliases to provider-specific model identifiers."""
-    # When using Poe/OpenAI-compatible API, pass model name as-is
+    normalized = (model or "").strip()
+
+    # Poe expects the public bot name in the model field.
+    if OPENAI_BASE_URL and "api.poe.com" in OPENAI_BASE_URL.lower():
+        poe_alias_map = {
+            "deepseek-v3.2": "DeepSeek-V3.2",
+            "deepseek v3.2": "DeepSeek-V3.2",
+            "deepseek_v3.2": "DeepSeek-V3.2",
+            "deepseek/v3.2": "DeepSeek-V3.2",
+            "deepseek-v4-flash": "DeepSeek-V3.2",
+        }
+        return poe_alias_map.get(normalized.lower(), normalized)
+
+    # For other OpenAI-compatible providers, pass model name as-is.
     if OPENAI_BASE_URL:
-        return (model or "").strip()
+        return normalized
     alias_map = {
         "gpt-4o": "openai/gpt-4o",
         "gpt-4o-mini": "openai/gpt-4o-mini",
         "o4-mini": "openai/o4-mini",
     }
-    normalized = (model or "").strip()
     return alias_map.get(normalized.lower(), normalized)
 
 

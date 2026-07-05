@@ -26,7 +26,7 @@ class CaseScore:
     error_codes: list[str]
 
 
-_NUM_RE = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?%?")
+_NUM_RE = re.compile(r"\(?[-+]?\d[\d,]*(?:\.\d+)?%?\)?")
 
 
 def _to_float(num_text: str) -> float | None:
