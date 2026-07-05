@@ -33,6 +33,8 @@ def _score_chunk(chunk: str, question: str) -> int:
 
 def _score_with_keywords(chunk: str, question: str, evidence_keywords: list[str] | None) -> int:
     score = _score_chunk(chunk, question)
+    if _NUM_RE.search(chunk):
+        score += 2
     if evidence_keywords:
         c_low = chunk.lower()
         for kw in evidence_keywords:
@@ -40,6 +42,9 @@ def _score_with_keywords(chunk: str, question: str, evidence_keywords: list[str]
             if token and token in c_low:
                 score += 5
     return score
+
+
+_NUM_RE = re.compile(r"\d[\d,]*(?:\.\d+)?%?")
 
 
 def _keyword_windows(report_text: str, evidence_keywords: list[str] | None, window: int = 1) -> list[str]:
@@ -75,11 +80,14 @@ def retrieve_chunks(
         return []
 
     ranked = sorted(
-        ((block, _score_with_keywords(block, question, evidence_keywords)) for block in blocks),
-        key=lambda x: x[1],
+        (
+            (idx, block, _score_with_keywords(block, question, evidence_keywords))
+            for idx, block in enumerate(blocks)
+        ),
+        key=lambda x: (x[2], -x[0]),
         reverse=True,
     )
-    picks = [block for block, score in ranked[:top_k] if score > 0]
+    picks = [block for _, block, score in ranked[:top_k] if score > 0]
     if not picks:
         picks = blocks[: min(top_k, len(blocks))]
 

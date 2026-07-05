@@ -45,7 +45,7 @@ def build_h3_review_prompts(
                 "Context:\n"
                 f"{context}\n\n"
                 "Return exactly:\n"
-                "ANSWER: PASS or FAIL | <=15-word reason\n"
+                "ANSWER: PASS | <short reason> OR FAIL | <short reason>\n"
                 "CITATIONS: <semicolon-separated snippets from Context that justify the judgment; or NONE>\n\n"
                 "Fail if any of these hold:\n"
                 "- draft uses unsupported number/unit/date/entity\n"
@@ -98,7 +98,7 @@ def chronology_guard(answer: str, case: FinancialEvalCase, report_text: str) -> 
     if not order:
         return None
 
-    # Validate chronology in the model answer, not in the source report paragraph order.
+    # Validate chronology in the model answer, not in source-document order.
     low_answer = _normalize(answer)
     positions = []
     for token in order:

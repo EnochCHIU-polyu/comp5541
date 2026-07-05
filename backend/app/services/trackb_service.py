@@ -296,6 +296,96 @@ class TrackBService:
             "output_dir": str(run_dir),
         }
 
+    def _restore_run_state_from_disk(self, run_id: str) -> TrackBRunState | None:
+        """Rehydrate a completed run from artifacts so reload doesn't cause 404."""
+        run_dir = self._repo_root() / "phase4_evaluation" / "results" / "trackb_runs" / run_id
+        if not run_dir.exists() or not run_dir.is_dir():
+            return None
+
+        profile_dirs = [p for p in run_dir.iterdir() if p.is_dir() and (p / "metrics.json").exists()]
+        if not profile_dirs:
+            return None
+
+        profile_dirs = sorted(profile_dirs, key=lambda p: p.name)
+        metrics_by_profile: Dict[str, Dict[str, Any]] = {}
+        output_dirs: Dict[str, str] = {}
+        profiles: List[str] = []
+
+        report_path = ""
+        cases_path = ""
+        model = ""
+        temperature = 0.0
+        max_cases = 0
+        batch_size = 1
+        cases_total = 0
+
+        for profile_dir in profile_dirs:
+            profile_name = profile_dir.name
+            metrics = self._read_json_file(profile_dir / "metrics.json")
+            metrics_by_profile[profile_name] = metrics
+            output_dirs[profile_name] = str(profile_dir)
+            profiles.append(profile_name)
+
+            if not report_path:
+                report_path = str(metrics.get("report_path", ""))
+            if not cases_path:
+                cases_path = str(metrics.get("cases_path", ""))
+            if not model:
+                model = str(metrics.get("model", ""))
+            if temperature == 0.0:
+                temperature = float(metrics.get("temperature", 0.0) or 0.0)
+            if max_cases == 0:
+                max_cases = int(metrics.get("cases_run", 0) or 0)
+            if batch_size == 1:
+                batch_size = int(metrics.get("batch_size", 1) or 1)
+            if cases_total == 0:
+                cases_total = int(metrics.get("cases_run", 0) or 0)
+
+        ts = datetime.fromtimestamp(run_dir.stat().st_mtime, timezone.utc)
+        progress = {
+            p: TrackBProfileProgress(
+                profile=p,
+                status="completed",
+                cases_total=cases_total,
+                cases_completed=cases_total,
+            )
+            for p in profiles
+        }
+
+        return TrackBRunState(
+            run_id=run_id,
+            created_at=ts,
+            report_path=report_path,
+            cases_path=cases_path,
+            model=model,
+            temperature=temperature,
+            max_cases=max_cases,
+            batch_size=batch_size,
+            profiles=profiles,  # type: ignore[arg-type]
+            status="completed",
+            stage="completed",
+            started_at=ts,
+            finished_at=ts,
+            progress=progress,
+            metrics_by_profile=metrics_by_profile,
+            profile_output_dirs=output_dirs,
+        )
+
+    def _get_or_restore_state(self, run_id: str) -> TrackBRunState:
+        with self._lock:
+            state = self._runs.get(run_id)
+        if state is not None:
+            return state
+
+        restored = self._restore_run_state_from_disk(run_id)
+        if restored is None:
+            raise KeyError(run_id)
+
+        with self._lock:
+            self._runs[run_id] = restored
+            self._queues.setdefault(run_id, [])
+            return self._runs[run_id]
+
     async def create_run(self, req: TrackBRunCreateRequest) -> TrackBRunCreateResponse:
         report_path = self._resolve_path(req.report_path)
         cases_path = self._resolve_path(req.cases_path)
@@ -413,6 +503,9 @@ class TrackBService:
             report_text = Path(state.report_path).read_text(encoding="utf-8")
             all_cases = await to_thread(load_financial_eval_cases, state.cases_path)
             cases = all_cases[: state.max_cases] if state.max_cases > 0 else all_cases
+            if not cases:
+                raise ValueError("No Track B cases available after applying max_cases filter")
+            case_index_map = {c.case_id: i for i, c in enumerate(cases, start=1)}
 
             run_root = self._repo_root() / "phase4_evaluation" / "results" / "trackb_runs" / run_id
             run_root.mkdir(parents=True, exist_ok=True)
@@ -432,6 +525,28 @@ class TrackBService:
                 rows: List[Dict[str, Any]] = []
                 scored = []
 
+                async def _publish_case_step(
+                    case_id: str,
+                    step: str,
+                    step_status: str,
+                    details: Optional[Dict[str, Any]] = None,
+                ) -> None:
+                    await self._publish(
+                        run_id,
+                        "trackb_case_progress",
+                        "running",
+                        {
+                            "profile": profile,
+                            "case_id": case_id,
+                            "case_index": case_index_map.get(case_id, completed),
+                            "cases_total": len(cases),
+                            "batch_size": batch_size,
+                            "step": step,
+                            "step_status": step_status,
+                            "details": details or {},
+                        },
+                    )
+
                 def _is_context_length_error(exc: Exception) -> bool:
                     err_text = str(exc).lower()
                     return (
@@ -442,6 +557,12 @@ class TrackBService:
 
                 async def _run_batch_with_fallback(case_batch: list[Any]) -> list[Any]:
                     try:
+                        def _on_step(case_id: str, step: str, status: str, details: Dict[str, Any] | None = None) -> None:
+                            asyncio.run_coroutine_threadsafe(
+                                _publish_case_step(case_id, step, status, details),
+                                loop,
+                            )
+
                         return await to_thread(
                             run_financial_workflow_batch,
                             report_text=report_text,
@@ -452,13 +573,56 @@ class TrackBService:
                             use_h2_numeric_guard=flags["use_h2_numeric_guard"],
                             use_h3_chronology_guard=flags["use_h3_chronology_guard"],
                             use_h4_verifier=flags["use_h4_verifier"],
+                            progress_callback=_on_step,
                         )
                     except Exception as exc:  # noqa: BLE001
                         if not _is_context_length_error(exc):
-                            raise
+                            if len(case_batch) == 1:
+                                single = case_batch[0]
+
+                                def _on_single_step(
+                                    case_id: str,
+                                    step: str,
+                                    status: str,
+                                    details: Dict[str, Any] | None = None,
+                                ) -> None:
+                                    asyncio.run_coroutine_threadsafe(
+                                        _publish_case_step(case_id, step, status, details),
+                                        loop,
+                                    )
+
+                                wf = await to_thread(
+                                    run_financial_workflow,
+                                    report_text=report_text,
+                                    case=single,
+                                    model=state.model,
+                                    temperature=state.temperature,
+                                    use_h1_retrieval=flags["use_h1_retrieval"],
+                                    use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                    use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                    use_h4_verifier=flags["use_h4_verifier"],
+                                    progress_callback=_on_single_step,
+                                )
+                                return [wf]
+                            mid = max(1, len(case_batch) // 2)
+                            left = await _run_batch_with_fallback(case_batch[:mid])
+                            right = await _run_batch_with_fallback(case_batch[mid:])
+                            return left + right
 
                         if len(case_batch) == 1:
                             single = case_batch[0]
+
+                            def _on_single_step(
+                                case_id: str,
+                                step: str,
+                                status: str,
+                                details: Dict[str, Any] | None = None,
+                            ) -> None:
+                                asyncio.run_coroutine_threadsafe(
+                                    _publish_case_step(case_id, step, status, details),
+                                    loop,
+                                )
+
                             wf = await to_thread(
                                 run_financial_workflow,
                                 report_text=report_text,
@@ -469,6 +633,7 @@ class TrackBService:
                                 use_h2_numeric_guard=flags["use_h2_numeric_guard"],
                                 use_h3_chronology_guard=flags["use_h3_chronology_guard"],
                                 use_h4_verifier=flags["use_h4_verifier"],
+                                progress_callback=_on_single_step,
                             )
                             return [wf]
 
@@ -479,9 +644,40 @@ class TrackBService:
 
                 completed = 0
                 batch_size = max(1, int(state.batch_size or 1))
+                loop = asyncio.get_running_loop()
                 for start in range(0, len(cases), batch_size):
                     case_batch = cases[start : start + batch_size]
+                    for case in case_batch:
+                        await _publish_case_step(case.case_id, "workflow", "started", {"batch": batch_size > 1})
                     wf_batch = await _run_batch_with_fallback(case_batch)
+                    if case_batch and not wf_batch:
+                        wf_batch = []
+                        for single in case_batch:
+
+                            def _on_single_step(
+                                case_id: str,
+                                step: str,
+                                status: str,
+                                details: Dict[str, Any] | None = None,
+                            ) -> None:
+                                asyncio.run_coroutine_threadsafe(
+                                    _publish_case_step(case_id, step, status, details),
+                                    loop,
+                                )
+
+                            wf = await to_thread(
+                                run_financial_workflow,
+                                report_text=report_text,
+                                case=single,
+                                model=state.model,
+                                temperature=state.temperature,
+                                use_h1_retrieval=flags["use_h1_retrieval"],
+                                use_h2_numeric_guard=flags["use_h2_numeric_guard"],
+                                use_h3_chronology_guard=flags["use_h3_chronology_guard"],
+                                use_h4_verifier=flags["use_h4_verifier"],
+                                progress_callback=_on_single_step,
+                            )
+                            wf_batch.append(wf)
                     case_by_id = {c.case_id: c for c in case_batch}
 
                     for idx_in_batch, wf in enumerate(wf_batch):
@@ -509,8 +705,13 @@ class TrackBService:
                                 "cases_total": len(cases),
                                 "case_id": case.case_id,
                                 "batch_size": batch_size,
+                                "step": "case_completed",
+                                "step_status": "completed",
                             },
                         )
+
+                if len(cases) > 0 and completed == 0:
+                    raise RuntimeError("No workflow outputs were produced for non-empty cases")
 
                 metrics = aggregate_scores(scored)
                 metrics["variant"] = variant
@@ -573,10 +774,8 @@ class TrackBService:
             await self._publish(run_id, "trackb_failed", "failed", {"error": str(exc)})
 
     def get_status(self, run_id: str) -> TrackBRunStatusResponse:
+        state = self._get_or_restore_state(run_id)
         with self._lock:
-            if run_id not in self._runs:
-                raise KeyError(run_id)
-            state = self._runs[run_id]
             progress = list(state.progress.values())
             return TrackBRunStatusResponse(
                 run_id=run_id,
@@ -597,16 +796,13 @@ class TrackBService:
             )
 
     def get_metrics(self, run_id: str) -> Dict[str, Dict[str, Any]]:
+        state = self._get_or_restore_state(run_id)
         with self._lock:
-            if run_id not in self._runs:
-                raise KeyError(run_id)
-            return dict(self._runs[run_id].metrics_by_profile)
+            return dict(state.metrics_by_profile)
 
     def get_artifacts(self, run_id: str) -> Dict[str, Any]:
+        state = self._get_or_restore_state(run_id)
         with self._lock:
-            if run_id not in self._runs:
-                raise KeyError(run_id)
-            state = self._runs[run_id]
             output_dir = str(self._repo_root() / "phase4_evaluation" / "results" / "trackb_runs" / run_id)
 
             artifacts: List[Dict[str, Any]] = []
@@ -647,10 +843,8 @@ class TrackBService:
         return TrackBHistoryResponse(runs=rows)
 
     def compare(self, req: TrackBComparisonRequest) -> TrackBComparisonResponse:
+        state = self._get_or_restore_state(req.run_id)
         with self._lock:
-            if req.run_id not in self._runs:
-                raise KeyError(req.run_id)
-            state = self._runs[req.run_id]
             metrics = dict(state.metrics_by_profile)
 
         if not metrics:
@@ -703,11 +897,7 @@ class TrackBService:
         )
 
     def reproduce(self, run_id: str) -> TrackBReproduceResponse:
-        with self._lock:
-            if run_id not in self._runs:
-                raise KeyError(run_id)
-            state = self._runs[run_id]
-
+        state = self._get_or_restore_state(run_id)
         profiles_csv = ",".join(state.profiles)
         cmd = (
             f".venv/bin/python scripts/run_financial_trackb.py "
@@ -739,9 +929,8 @@ class TrackBService:
         )
 
     async def subscribe(self, run_id: str) -> asyncio.Queue[TrackBEvent]:
+        self._get_or_restore_state(run_id)
         with self._lock:
-            if run_id not in self._runs:
-                raise KeyError(run_id)
             q: asyncio.Queue[TrackBEvent] = asyncio.Queue()
             self._queues.setdefault(run_id, []).append(q)
             return q

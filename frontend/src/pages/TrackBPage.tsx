@@ -536,6 +536,30 @@ export function TrackBPage() {
                     <span className="font-semibold">{evt.event}</span>
                     <span className="aw-subtle"> [{evt.stage}]</span>
                     <span className="aw-subtle"> seq={evt.seq}</span>
+                    {(() => {
+                      const payload = evt.payload as Record<string, unknown>;
+                      const step = String(payload.step ?? "").trim();
+                      const stepStatus = String(
+                        payload.step_status ?? "",
+                      ).trim();
+                      const caseId = String(payload.case_id ?? "").trim();
+                      const caseIndex = payload.case_index;
+                      const casesTotal = payload.cases_total;
+                      const profile = String(payload.profile ?? "").trim();
+                      if (!step && !caseId && !profile) return null;
+                      return (
+                        <div className="aw-subtle mt-1 text-[11px]">
+                          {profile ? `profile=${profile} ` : ""}
+                          {caseId ? `case=${caseId} ` : ""}
+                          {typeof caseIndex === "number" &&
+                          typeof casesTotal === "number"
+                            ? `(${caseIndex}/${casesTotal}) `
+                            : ""}
+                          {step ? `step=${step}` : ""}
+                          {stepStatus ? ` status=${stepStatus}` : ""}
+                        </div>
+                      );
+                    })()}
                   </li>
                 ))}
               </ul>

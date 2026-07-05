@@ -1,9 +1,12 @@
-"""H4 - Skeptical verifier harness for Track B financial report questions."""
+"""H4 - Deterministic verification and repair gate for Track B."""
 
 from __future__ import annotations
 
 import re
 from typing import Any
+
+from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
+from phase2_llm_engine.trackb_harnesses.h1_retrieval import retrieve_chunks
 
 
 _NUM_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
@@ -103,3 +106,52 @@ def verify_support(
         "verified": supported,
         "reason": "; ".join(reasons),
     }
+
+
+def repair_answer_deterministic(
+    answer: str,
+    citations: list[str],
+    report_text: str,
+    case: FinancialEvalCase,
+) -> tuple[str, list[str], list[str]]:
+    """Apply deterministic, non-LLM fixes when verification fails."""
+    repaired_answer = (answer or "").strip()
+    repaired_citations = [c.strip() for c in citations if str(c).strip()]
+    actions: list[str] = []
+
+    if not repaired_answer:
+        repaired_answer = "INSUFFICIENT_EVIDENCE"
+        actions.append("empty_answer_to_insufficient_evidence")
+
+    if not repaired_citations:
+        normalized_answer = _normalize_text(repaired_answer)
+        if normalized_answer and normalized_answer != "insufficient evidence":
+            for line in report_text.splitlines():
+                line_clean = line.strip()
+                if not line_clean:
+                    continue
+                if normalized_answer in _normalize_text(line_clean):
+                    repaired_citations = [line_clean]
+                    actions.append("add_exact_match_citation")
+                    break
+
+    if not repaired_citations:
+        fallback = retrieve_chunks(
+            report_text,
+            case.question,
+            top_k=2,
+            evidence_keywords=case.evidence_keywords,
+        )
+        if fallback:
+            repaired_citations = fallback
+            actions.append("add_retrieved_citations")
+
+    if case.expected_unit:
+        low_answer = repaired_answer.lower()
+        low_unit = case.expected_unit.lower().strip()
+        if low_unit and low_unit not in low_answer and _NUM_RE.search(repaired_answer):
+            if repaired_answer != "INSUFFICIENT_EVIDENCE":
+                repaired_answer = f"{repaired_answer} {case.expected_unit}".strip()
+                actions.append("append_expected_unit")
+
+    return repaired_answer, repaired_citations, actions

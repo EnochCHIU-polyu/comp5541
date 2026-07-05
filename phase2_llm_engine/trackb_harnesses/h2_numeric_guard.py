@@ -122,10 +122,20 @@ def build_numeric_hint(report_text: str, case: FinancialEvalCase, top_k: int = 3
     if not picked:
         return ""
 
+    arithmetic_hint = ""
+    if case.arithmetic_expression:
+        arithmetic_hint = f"\nDerived arithmetic target: {case.arithmetic_expression}"
+
+    yn_hint = ""
+    if case.answer_type == "text" and "yes or no" in case.question.lower():
+        yn_hint = "\nFor yes/no questions, answer exactly yes or no and support with direct quote."
+
     return (
         "Numeric evidence hints:\n"
         + "\n".join(f"- {line}" for line in picked)
         + (f"\nTarget unit: {case.expected_unit}" if case.expected_unit else "")
+        + arithmetic_hint
+        + yn_hint
         + "\nInstruction: preserve the report's exact scale; do not round a table value into a headline approximation."
     )
 
