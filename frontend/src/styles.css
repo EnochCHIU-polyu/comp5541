@@ -92,9 +92,16 @@ body {
   }
 
   .aw-side-link-active {
-    border-color: rgba(30, 41, 59, 0.25);
-    color: #1e293b;
-    background: var(--aw-accent-soft);
+    border-color: rgba(30, 41, 59, 0.38);
+    color: #111827;
+    background: rgba(30, 41, 59, 0.12);
+    font-weight: 600;
+  }
+
+  .aw-side-link-section {
+    border-color: rgba(30, 41, 59, 0.18);
+    color: #334155;
+    background: rgba(30, 41, 59, 0.08);
     font-weight: 600;
   }
 

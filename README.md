@@ -61,20 +61,15 @@ cd ..
 ### Minimal `.env` (DeepSeek via OpenAI-compatible API)
 
 ```dotenv
-DEEPSEEK_API_KEY=your_key_here
+POE_API_KEY = ${key}
+OPENAI_API_KEY=${POE_API_KEY}
+OPENAI_BASE_URL=https://api.poe.com/v1
 
-OPENAI_API_KEY=${DEEPSEEK_API_KEY}
-OPENAI_BASE_URL=https://api.deepseek.com
+DEFAULT_MODEL=deepseek-v3.2    
+TEMPERATURE=0              
+MAX_CONTEXT_TOKENS=64000
+API_PAUSE_SECONDS=12      
 
-DEFAULT_MODEL=deepseek-v4-flash
-TEMPERATURE=0
-MAX_CONTEXT_TOKENS=32000
-API_PAUSE_SECONDS=13
-
-DEEPSEEK_REASONING_EFFORT=high
-DEEPSEEK_THINKING_ENABLED=true
-
-DATA_BACKEND=local
 ```
 
 Restart running Python services after changing `.env`.

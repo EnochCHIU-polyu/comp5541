@@ -706,115 +706,163 @@ export function TrackBPage() {
               <p className="aw-subtle text-xs">
                 Output dir: {artifacts.output_dir}
               </p>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 grid-cols-1">
                 {artifactProfiles.map((profileSummary) => (
                   <div
                     key={profileSummary.profile}
                     className="rounded-xl border border-slate-200 p-4"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">
-                        {profileSummary.profile === "baseline"
-                          ? "baseline (V0)"
-                          : profileSummary.profile}
-                      </p>
-                      <span className="aw-chip aw-chip-accent">
-                        wrong cases: {profileSummary.wrong_case_count}
-                      </span>
-                    </div>
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                      <div className="rounded-md bg-slate-50 p-2">
-                        overall{" "}
-                        {(
-                          Number(profileSummary.overall_accuracy) * 100
-                        ).toFixed(1)}
-                        %
-                      </div>
-                      <div className="rounded-md bg-slate-50 p-2">
-                        numeric{" "}
-                        {(
-                          Number(profileSummary.numeric_accuracy) * 100
-                        ).toFixed(1)}
-                        %
-                      </div>
-                      <div className="rounded-md bg-slate-50 p-2">
-                        citations{" "}
-                        {(Number(profileSummary.citation_rate) * 100).toFixed(
-                          1,
-                        )}
-                        %
-                      </div>
-                    </div>
-                    {profileSummary.llm_telemetry_summary ? (
-                      <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-2 text-xs">
-                        <p className="font-semibold">LLM telemetry</p>
-                        <p className="aw-subtle mt-1">
-                          requests{" "}
-                          {profileSummary.llm_telemetry_summary.total_requests}{" "}
-                          | success{" "}
-                          {profileSummary.llm_telemetry_summary.success_count} |
-                          failed{" "}
-                          {profileSummary.llm_telemetry_summary.failure_count}
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Request info
                         </p>
-                        <p className="aw-subtle">
-                          avg latency{" "}
-                          {profileSummary.llm_telemetry_summary.avg_elapsed_ms.toFixed(
-                            1,
-                          )}{" "}
-                          ms | total tokens{" "}
-                          {profileSummary.llm_telemetry_summary.total_tokens}
-                        </p>
-                      </div>
-                    ) : null}
-                    {profileSummary.llm_telemetry_preview &&
-                    profileSummary.llm_telemetry_preview.length > 0 ? (
-                      <div className="mt-3 space-y-1 rounded-md border border-slate-200 p-2 text-xs">
-                        <p className="font-semibold">Recent LLM requests</p>
-                        {profileSummary.llm_telemetry_preview
-                          .slice(-5)
-                          .map((row, idx) => (
-                            <p
-                              key={`${row.started_at}-${idx}`}
-                              className="aw-subtle"
-                            >
-                              {row.process} |{" "}
-                              {Math.round(Number(row.elapsed_ms) || 0)} ms | tok{" "}
-                              {row.usage?.total_tokens ?? "-"}
-                            </p>
-                          ))}
-                      </div>
-                    ) : null}
-                    <div className="mt-3 space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        Wrong cases
-                      </p>
-                      {profileSummary.wrong_cases.length === 0 ? (
-                        <p className="aw-subtle text-xs">
-                          No wrong cases in the preview.
-                        </p>
-                      ) : (
-                        profileSummary.wrong_cases.map((caseItem) => (
-                          <div
-                            key={caseItem.case_id}
-                            className="rounded-md border border-slate-200 p-2 text-xs"
-                          >
-                            <p className="font-semibold">{caseItem.case_id}</p>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold">
+                            {profileSummary.profile === "baseline"
+                              ? "baseline (V0)"
+                              : profileSummary.profile}
+                          </p>
+                          <span className="aw-chip aw-chip-accent">
+                            wrong cases: {profileSummary.wrong_case_count}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                          <div className="rounded-md bg-slate-50 p-2">
+                            overall{" "}
+                            {(
+                              Number(profileSummary.overall_accuracy) * 100
+                            ).toFixed(1)}
+                            %
+                          </div>
+                          <div className="rounded-md bg-slate-50 p-2">
+                            numeric{" "}
+                            {(
+                              Number(profileSummary.numeric_accuracy) * 100
+                            ).toFixed(1)}
+                            %
+                          </div>
+                          <div className="rounded-md bg-slate-50 p-2">
+                            citations{" "}
+                            {(Number(profileSummary.citation_rate) * 100).toFixed(
+                              1,
+                            )}
+                            %
+                          </div>
+                        </div>
+
+                        {profileSummary.llm_telemetry_summary ? (
+                          <div className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs">
+                            <p className="font-semibold">LLM telemetry</p>
                             <p className="aw-subtle mt-1">
-                              {caseItem.question}
+                              requests{" "}
+                              {profileSummary.llm_telemetry_summary.total_requests}{" "}
+                              | success{" "}
+                              {profileSummary.llm_telemetry_summary.success_count} |
+                              failed{" "}
+                              {profileSummary.llm_telemetry_summary.failure_count}
                             </p>
-                            <p className="mt-1">
-                              Answer: {caseItem.answer || "(empty)"}
-                            </p>
-                            <p className="aw-subtle mt-1">
-                              Expected: {caseItem.expected_answer}
-                            </p>
-                            <p className="aw-subtle mt-1">
-                              Errors:{" "}
-                              {caseItem.error_codes.join(", ") || "none"}
+                            <p className="aw-subtle">
+                              avg latency{" "}
+                              {profileSummary.llm_telemetry_summary.avg_elapsed_ms.toFixed(
+                                1,
+                              )}{" "}
+                              ms | total tokens{" "}
+                              {profileSummary.llm_telemetry_summary.total_tokens}
                             </p>
                           </div>
-                        ))
-                      )}
+                        ) : null}
+
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Request result
+                        </p>
+
+                        {profileSummary.llm_telemetry_preview &&
+                        profileSummary.llm_telemetry_preview.length > 0 ? (
+                          <div className="space-y-1 rounded-md border border-slate-200 p-2 text-xs">
+                            <p className="font-semibold">Recent LLM requests</p>
+                            {profileSummary.llm_telemetry_preview
+                              .slice(-5)
+                              .map((row, idx) => (
+                                <p
+                                  key={`${row.started_at}-${idx}`}
+                                  className="aw-subtle"
+                                >
+                                  {row.process} |{" "}
+                                  {Math.round(Number(row.elapsed_ms) || 0)} ms | tok{" "}
+                                  {row.usage?.total_tokens ?? "-"}
+                                </p>
+                              ))}
+                          </div>
+                        ) : null}
+
+                        {(() => {
+                          const telemetryRows = profileSummary.llm_telemetry_preview ?? [];
+                          const latestWithRequest = [...telemetryRows]
+                            .reverse()
+                            .find(
+                              (row) =>
+                                Array.isArray(row.request_messages) &&
+                                row.request_messages.length > 0,
+                            );
+                          if (!latestWithRequest) return null;
+
+                          const requestText = JSON.stringify(
+                            latestWithRequest.request_messages,
+                            null,
+                            2,
+                          );
+
+                          return (
+                            <div className="space-y-2 rounded-md border border-slate-200 p-2 text-xs">
+                              <p className="font-semibold">Original LLM request</p>
+                              <p className="aw-subtle">
+                                process={latestWithRequest.process} | attempt={latestWithRequest.attempt} | messages={latestWithRequest.message_count}
+                              </p>
+                              <textarea
+                                className="aw-input h-56 overflow-auto font-mono text-xs"
+                                readOnly
+                                value={requestText}
+                              />
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="mt-3 space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Wrong cases
+                        </p>
+                        {profileSummary.wrong_cases.length === 0 ? (
+                          <p className="aw-subtle text-xs">
+                            No wrong cases in the preview.
+                          </p>
+                        ) : (
+                          profileSummary.wrong_cases.map((caseItem) => (
+                            <div
+                              key={caseItem.case_id}
+                              className="rounded-md border border-slate-200 p-2 text-xs"
+                            >
+                              <p className="font-semibold">{caseItem.case_id}</p>
+                              <p className="aw-subtle mt-1">
+                                {caseItem.question}
+                              </p>
+                              <p className="mt-1">
+                                Answer: {caseItem.answer || "(empty)"}
+                              </p>
+                              <p className="aw-subtle mt-1">
+                                Expected: {caseItem.expected_answer}
+                              </p>
+                              <p className="aw-subtle mt-1">
+                                Errors:{" "}
+                                {caseItem.error_codes.join(", ") || "none"}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

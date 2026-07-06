@@ -49,7 +49,7 @@ export function AppSidebar({ onCollapse }: AppSidebarProps) {
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === "/"}
+            end={item.to === "/trackb"}
             className={({ isActive }) => linkClass(isActive)}
           >
             {item.label}

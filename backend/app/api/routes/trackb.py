@@ -16,6 +16,7 @@ from app.schemas.trackb import (
     TrackBComparisonResponse,
     TrackBChatAskRequest,
     TrackBChatAskResponse,
+    TrackBChatReportResponse,
     TrackBChatSessionCreateRequest,
     TrackBChatSessionCreateResponse,
     TrackBChatSessionResponse,
@@ -176,6 +177,16 @@ async def get_trackb_chat_session(session_id: str) -> TrackBChatSessionResponse:
         return trackb_service.get_chat_session(session_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Track B chat session not found") from exc
+
+
+@router.get("/chat/sessions/{session_id}/report", response_model=TrackBChatReportResponse)
+async def get_trackb_chat_session_report(session_id: str) -> TrackBChatReportResponse:
+    try:
+        return trackb_service.get_chat_session_report(session_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Track B chat session not found") from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.get("/harnesses/h1/components", response_model=TrackBH1ComponentsResponse)

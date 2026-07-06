@@ -137,6 +137,37 @@ def _extract_usage_payload(usage_obj: Any) -> dict[str, Optional[int]]:
     }
 
 
+def _sanitize_for_json(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, list):
+        return [_sanitize_for_json(item) for item in value]
+    if isinstance(value, tuple):
+        return [_sanitize_for_json(item) for item in value]
+    if isinstance(value, dict):
+        return {str(k): _sanitize_for_json(v) for k, v in value.items()}
+
+    # Fallback keeps telemetry serializable while preserving debug signal.
+    return str(value)
+
+
+def _build_request_messages_snapshot(messages: list[dict]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for msg in messages:
+        role = str(msg.get("role", "unknown"))
+        content = _sanitize_for_json(msg.get("content", ""))
+        row: dict[str, Any] = {"role": role, "content": content}
+
+        # Preserve any additional message keys for reproducibility.
+        for key, value in msg.items():
+            if key in {"role", "content"}:
+                continue
+            row[str(key)] = _sanitize_for_json(value)
+
+        rows.append(row)
+    return rows
+
+
 def _get_openai_client():
     """Return a cached, configured openai.OpenAI client."""
     global _openai_client
@@ -268,6 +299,7 @@ def query_llm(
         len(messages),
     )
     _trace_messages(messages, model)
+    request_messages = _build_request_messages_snapshot(messages)
 
     last_exc: Optional[Exception] = None
     for attempt in range(_MAX_RETRIES + 1):
@@ -293,6 +325,7 @@ def query_llm(
                         "success": True,
                         "process": _LLM_PROCESS.get(),
                         "usage": result["usage"],
+                        "request_messages": request_messages,
                         "error": None,
                     }
                 )
@@ -315,6 +348,7 @@ def query_llm(
                         "success": True,
                         "process": _LLM_PROCESS.get(),
                         "usage": result["usage"],
+                        "request_messages": request_messages,
                         "error": None,
                     }
                 )
@@ -337,6 +371,7 @@ def query_llm(
                         "success": True,
                         "process": _LLM_PROCESS.get(),
                         "usage": result["usage"],
+                        "request_messages": request_messages,
                         "error": None,
                     }
                 )
@@ -359,6 +394,7 @@ def query_llm(
                         "success": True,
                         "process": _LLM_PROCESS.get(),
                         "usage": result["usage"],
+                        "request_messages": request_messages,
                         "error": None,
                     }
                 )
@@ -385,6 +421,7 @@ def query_llm(
                             "success": True,
                             "process": _LLM_PROCESS.get(),
                             "usage": result["usage"],
+                            "request_messages": request_messages,
                             "error": None,
                         }
                     )
@@ -406,6 +443,7 @@ def query_llm(
                     "success": False,
                     "process": _LLM_PROCESS.get(),
                     "usage": {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None},
+                    "request_messages": request_messages,
                     "error": str(exc),
                 }
             )

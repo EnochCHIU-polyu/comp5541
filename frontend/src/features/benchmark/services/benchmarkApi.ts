@@ -159,6 +159,8 @@ export interface TrackBChatProfileAnswer {
   profile: string;
   answer: string;
   citations: string[];
+  evidence_lines: number[];
+  primary_evidence_line: number | null;
   diagnostics: Record<string, unknown>;
   elapsed_ms: number;
 }
@@ -194,6 +196,14 @@ export interface TrackBChatAskRequest {
 export interface TrackBChatAskResponse {
   session_id: string;
   turn: TrackBChatTurn;
+}
+
+export interface TrackBChatReportResponse {
+  session_id: string;
+  report_path: string;
+  report_name: string;
+  line_count: number;
+  content: string;
 }
 
 export interface TrackBChatSessionResponse {
@@ -275,6 +285,11 @@ export interface TrackBArtifactsResponse {
         completion_tokens: number | null;
         total_tokens: number | null;
       };
+      request_messages?: Array<{
+        role: string;
+        content: unknown;
+        [key: string]: unknown;
+      }>;
       error: string | null;
       profile?: string;
     }>;
@@ -654,6 +669,19 @@ export async function getTrackBChatSession(
     throw new Error(`Get Track B chat session failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBChatSessionResponse>;
+}
+
+export async function getTrackBChatSessionReport(
+  sessionId: string,
+): Promise<TrackBChatReportResponse> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/chat/sessions/${sessionId}/report`,
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B chat report failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBChatReportResponse>;
 }
 
 export async function getTrackBRunStatus(

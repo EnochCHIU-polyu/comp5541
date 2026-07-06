@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import importlib
 import json
 import os
+import re
 from pathlib import Path
 import threading
 import time
@@ -19,6 +20,7 @@ from app.schemas.trackb import (
     TrackBChatAskRequest,
     TrackBChatAskResponse,
     TrackBChatProfileAnswer,
+    TrackBChatReportResponse,
     TrackBChatSessionCreateRequest,
     TrackBChatSessionCreateResponse,
     TrackBChatSessionResponse,
@@ -286,6 +288,71 @@ class TrackBService:
             "evidence_keywords": keywords,
         }
 
+    def _normalize_text(self, text: str) -> str:
+        return re.sub(r"\s+", " ", text).strip().lower()
+
+    def _citation_line_matches(self, report_lines: list[str], citation: str) -> list[int]:
+        normalized_citation = self._normalize_text(citation)
+        if not normalized_citation:
+            return []
+
+        normalized_lines = [self._normalize_text(line) for line in report_lines]
+        for idx, normalized_line in enumerate(normalized_lines):
+            if normalized_citation in normalized_line:
+                return [idx + 1]
+
+        if len(report_lines) > 1:
+            for idx in range(len(report_lines) - 1):
+                combined = self._normalize_text(f"{report_lines[idx]} {report_lines[idx + 1]}")
+                if normalized_citation in combined:
+                    return [idx + 1, idx + 2]
+
+        tokens = [token for token in normalized_citation.split(" ") if token]
+        if len(tokens) >= 3:
+            for idx, normalized_line in enumerate(normalized_lines):
+                if all(token in normalized_line for token in tokens[:3]):
+                    return [idx + 1]
+
+        return []
+
+    def _infer_evidence_lines(self, report_text: str, citations: List[str]) -> List[int]:
+        report_lines = report_text.splitlines()
+        if not report_lines or not citations:
+            return []
+
+        evidence_lines: set[int] = set()
+        for citation in citations:
+            raw = str(citation).strip()
+            if not raw or raw.upper() == "NONE":
+                continue
+            for line in self._citation_line_matches(report_lines, raw):
+                if line > 0:
+                    evidence_lines.add(line)
+
+        return sorted(evidence_lines)
+
+    def _get_chat_session(self, session_id: str) -> TrackBChatSessionState:
+        with self._lock:
+            session = self._chat_sessions.get(session_id)
+        if session is None:
+            raise KeyError(session_id)
+        return session
+
+    def get_chat_session_report(self, session_id: str) -> TrackBChatReportResponse:
+        session = self._get_chat_session(session_id)
+        report_path = Path(session.report_path)
+        if not report_path.exists():
+            raise FileNotFoundError(session.report_path)
+
+        content = report_path.read_text(encoding="utf-8")
+        return TrackBChatReportResponse(
+            session_id=session.session_id,
+            report_path=session.report_path,
+            report_name=session.report_name,
+            line_count=len(content.splitlines()),
+            content=content,
+        )
+
     def _read_json_file(self, path: Path) -> Dict[str, Any]:
         if not path.exists():
             return {}
@@ -377,7 +444,7 @@ class TrackBService:
             "numeric_accuracy": metrics.get("numeric_accuracy", 0.0),
             "citation_rate": metrics.get("citation_rate", 0.0),
             "llm_telemetry_summary": llm_telemetry_summary,
-            "llm_telemetry_preview": llm_telemetry[:20],
+            "llm_telemetry_preview": llm_telemetry[-20:],
         }
 
     def _run_dir_history_entry(self, run_dir: Path) -> Dict[str, Any] | None:
@@ -715,11 +782,14 @@ class TrackBService:
         selected_label = "baseline" if not selected else "+".join(
             [name for name in ["h1", "h2", "h3", "h4"] if name in selected]
         )
+        evidence_lines = self._infer_evidence_lines(report_text, wf.citations)
         answers = [
             TrackBChatProfileAnswer(
                 profile=selected_label,
                 answer=wf.answer,
                 citations=wf.citations,
+                evidence_lines=evidence_lines,
+                primary_evidence_line=evidence_lines[0] if evidence_lines else None,
                 diagnostics=wf.diagnostics,
                 elapsed_ms=elapsed_ms,
             )
@@ -741,10 +811,8 @@ class TrackBService:
         return TrackBChatAskResponse(session_id=session_id, turn=turn)
 
     def get_chat_session(self, session_id: str) -> TrackBChatSessionResponse:
+        session = self._get_chat_session(session_id)
         with self._lock:
-            session = self._chat_sessions.get(session_id)
-            if session is None:
-                raise KeyError(session_id)
             return TrackBChatSessionResponse(
                 session_id=session.session_id,
                 created_at=session.created_at,

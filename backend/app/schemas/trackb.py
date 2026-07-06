@@ -218,6 +218,8 @@ class TrackBChatProfileAnswer(BaseModel):
     profile: str
     answer: str
     citations: List[str] = Field(default_factory=list)
+    evidence_lines: List[int] = Field(default_factory=list)
+    primary_evidence_line: Optional[int] = None
     diagnostics: Dict[str, Any] = Field(default_factory=dict)
     elapsed_ms: float = 0.0
 
@@ -243,6 +245,14 @@ class TrackBChatAskRequest(BaseModel):
 class TrackBChatAskResponse(BaseModel):
     session_id: str
     turn: TrackBChatTurn
+
+
+class TrackBChatReportResponse(BaseModel):
+    session_id: str
+    report_path: str
+    report_name: str
+    line_count: int
+    content: str
 
 
 class TrackBChatSessionResponse(BaseModel):
