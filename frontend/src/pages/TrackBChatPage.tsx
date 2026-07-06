@@ -93,30 +93,6 @@ function isReportFile(name: string): boolean {
   );
 }
 
-function extractLineNumbers(texts: string[]): number[] {
-  const lines = new Set<number>();
-
-  for (const text of texts) {
-    for (const match of text.matchAll(/\bL(\d+)(?:\s*[-–]\s*L?(\d+))?/g)) {
-      const start = Number(match[1]);
-      const end = match[2] ? Number(match[2]) : start;
-      for (let line = start; line <= end; line += 1) {
-        if (line > 0) lines.add(line);
-      }
-    }
-
-    for (const match of text.matchAll(/\blines?\s+(\d+)(?:\s*[-–]\s*(\d+))?/gi)) {
-      const start = Number(match[1]);
-      const end = match[2] ? Number(match[2]) : start;
-      for (let line = start; line <= end; line += 1) {
-        if (line > 0) lines.add(line);
-      }
-    }
-  }
-
-  return [...lines].sort((left, right) => left - right);
-}
-
 function formatLineLabel(line: number): string {
   return `L${line}`;
 }
@@ -500,10 +476,7 @@ export function TrackBChatPage() {
                     </div>
                     <div className="space-y-3">
                       {turn.answers.map((ans) => {
-                        const lineTargets =
-                          ans.evidence_lines.length > 0
-                            ? ans.evidence_lines
-                            : extractLineNumbers([ans.answer, ...ans.citations]);
+                        const lineTargets = ans.evidence_lines;
                         const primaryLine = ans.primary_evidence_line ?? lineTargets[0] ?? null;
 
                         return (
@@ -541,7 +514,6 @@ export function TrackBChatPage() {
                               {ans.citations.length > 0 ? (
                                 <ul className="space-y-2 text-xs text-slate-700">
                                   {ans.citations.map((citation, idx) => {
-                                    const citationLines = extractLineNumbers([citation]);
                                     return (
                                       <li
                                         key={`${ans.profile}-${idx}`}
@@ -551,29 +523,15 @@ export function TrackBChatPage() {
                                           <span className="min-w-0 flex-1 break-words">
                                             {citation}
                                           </span>
-                                          {citationLines.length > 0 ? (
-                                            <div className="flex flex-wrap gap-2">
-                                              {citationLines.map((line) => (
-                                                <button
-                                                  key={`${ans.profile}-${idx}-${line}`}
-                                                  type="button"
-                                                  className="aw-chip aw-chip-accent cursor-pointer"
-                                                  onClick={() => jumpToLine(line)}
-                                                >
-                                                  Open {formatLineLabel(line)}
-                                                </button>
-                                              ))}
-                                            </div>
-                                          ) : (
+                                          {primaryLine ? (
                                             <button
                                               type="button"
-                                              className="aw-chip cursor-pointer"
+                                              className="aw-chip aw-chip-accent cursor-pointer"
                                               onClick={() => jumpToLine(primaryLine)}
-                                              disabled={!primaryLine}
                                             >
-                                              {primaryLine ? `Open ${formatLineLabel(primaryLine)}` : "No line found"}
+                                              Open {formatLineLabel(primaryLine)}
                                             </button>
-                                          )}
+                                          ) : null}
                                         </div>
                                       </li>
                                     );

@@ -291,29 +291,112 @@ class TrackBService:
     def _normalize_text(self, text: str) -> str:
         return re.sub(r"\s+", " ", text).strip().lower()
 
+    def _content_tokens(self, text: str) -> list[str]:
+        stop = {
+            "the",
+            "and",
+            "for",
+            "with",
+            "from",
+            "that",
+            "this",
+            "were",
+            "was",
+            "are",
+            "to",
+            "of",
+            "in",
+            "or",
+            "by",
+            "on",
+            "at",
+            "as",
+            "an",
+            "a",
+        }
+        tokens = re.findall(r"[a-z]{3,}", self._normalize_text(text))
+        return [token for token in tokens if token not in stop]
+
+    def _numeric_tokens(self, text: str) -> list[str]:
+        return [token.replace(",", "") for token in re.findall(r"\d[\d,]*(?:\.\d+)?%?", text)]
+
+    def _candidate_score(
+        self,
+        candidate_text: str,
+        content_tokens: list[str],
+        numeric_tokens: list[str],
+        exact_hit: bool,
+    ) -> int | None:
+        normalized_candidate = self._normalize_text(candidate_text)
+        if not normalized_candidate:
+            return None
+
+        if numeric_tokens:
+            compact_candidate = normalized_candidate.replace(",", "")
+            if not all(token in compact_candidate for token in numeric_tokens):
+                return None
+
+        token_hits = sum(1 for token in set(content_tokens) if token in normalized_candidate)
+        score = (4 if exact_hit else 0) + token_hits + (2 if numeric_tokens else 0)
+        return score
+
     def _citation_line_matches(self, report_lines: list[str], citation: str) -> list[int]:
         normalized_citation = self._normalize_text(citation)
         if not normalized_citation:
             return []
 
+        content_tokens = self._content_tokens(citation)
+        numeric_tokens = self._numeric_tokens(citation)
+        if len(normalized_citation) < 18 and not numeric_tokens:
+            return []
+        if len(content_tokens) < 2 and not numeric_tokens:
+            return []
+
         normalized_lines = [self._normalize_text(line) for line in report_lines]
+        candidates: list[tuple[list[int], int]] = []
+
         for idx, normalized_line in enumerate(normalized_lines):
-            if normalized_citation in normalized_line:
-                return [idx + 1]
+            if normalized_citation not in normalized_line:
+                continue
+            score = self._candidate_score(normalized_line, content_tokens, numeric_tokens, exact_hit=True)
+            if score is None:
+                continue
+            candidates.append(([idx + 1], score))
 
         if len(report_lines) > 1:
             for idx in range(len(report_lines) - 1):
                 combined = self._normalize_text(f"{report_lines[idx]} {report_lines[idx + 1]}")
-                if normalized_citation in combined:
-                    return [idx + 1, idx + 2]
+                if normalized_citation not in combined:
+                    continue
+                score = self._candidate_score(combined, content_tokens, numeric_tokens, exact_hit=True)
+                if score is None:
+                    continue
+                candidates.append(([idx + 1, idx + 2], score))
 
-        tokens = [token for token in normalized_citation.split(" ") if token]
-        if len(tokens) >= 3:
+        if not candidates and len(content_tokens) >= 3:
             for idx, normalized_line in enumerate(normalized_lines):
-                if all(token in normalized_line for token in tokens[:3]):
-                    return [idx + 1]
+                overlap = sum(1 for token in set(content_tokens) if token in normalized_line)
+                if overlap < 3:
+                    continue
+                score = self._candidate_score(normalized_line, content_tokens, numeric_tokens, exact_hit=False)
+                if score is None:
+                    continue
+                candidates.append(([idx + 1], score))
 
-        return []
+        if not candidates:
+            return []
+
+        candidates.sort(key=lambda item: item[1], reverse=True)
+        best_lines, best_score = candidates[0]
+        second_score = candidates[1][1] if len(candidates) > 1 else -999
+
+        # Prefer no anchor over ambiguous or weak anchors.
+        if best_score < 5:
+            return []
+        if second_score >= 0 and abs(best_score - second_score) <= 1:
+            return []
+
+        return best_lines
 
     def _infer_evidence_lines(self, report_text: str, citations: List[str]) -> List[int]:
         report_lines = report_text.splitlines()
@@ -789,7 +872,7 @@ class TrackBService:
                 answer=wf.answer,
                 citations=wf.citations,
                 evidence_lines=evidence_lines,
-                primary_evidence_line=evidence_lines[0] if evidence_lines else None,
+                primary_evidence_line=evidence_lines[0] if len(evidence_lines) == 1 else None,
                 diagnostics=wf.diagnostics,
                 elapsed_ms=elapsed_ms,
             )
