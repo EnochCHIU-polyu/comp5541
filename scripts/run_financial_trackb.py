@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
 from config import DEFAULT_MODEL
 from phase1_data_pipeline.financial_report_dataset import load_financial_eval_cases
 from phase2_llm_engine.financial_trackb_workflow import (
-    run_financial_workflow,
+    run_financial_workflow_batch,
     workflow_result_to_dict,
 )
 from phase4_evaluation.financial_trackb_scorer import aggregate_scores, score_case
@@ -139,6 +139,15 @@ def _build_variant_summary(mode: str, flags: dict) -> dict:
     }
 
 
+def _is_context_length_error(exc: Exception) -> bool:
+    low = str(exc).lower()
+    return (
+        "context_length_exceeded" in low
+        or "message is too long" in low
+        or "context length" in low
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Track B financial baseline/harness workflow")
     parser.add_argument("--report", default="data/report.md", help="Path to source report text")
@@ -153,6 +162,12 @@ def main() -> None:
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--output", default="phase4_evaluation/results/trackb")
     parser.add_argument("--max-cases", type=int, default=0, help="Run only the first N cases (0 = all)")
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=0,
+        help="Batch size for testing runs (0 = use maximum possible for selected cases)",
+    )
     args = parser.parse_args()
 
     report_path = _resolve_input_path(args.report)
@@ -167,22 +182,44 @@ def main() -> None:
     flags = _mode_to_flags(args.mode)
     variant_summary = _build_variant_summary(args.mode, flags)
 
-    run_rows = []
+    run_rows: list[dict] = []
     scored = []
 
-    for idx, case in enumerate(cases, 1):
-        print(f"[{idx}/{len(cases)}] Running case {case.case_id} ({args.mode})")
-        wf = run_financial_workflow(
-            report_text=report_text,
-            case=case,
-            model=args.model,
-            temperature=args.temperature,
-            **flags,
-        )
-        row = workflow_result_to_dict(wf)
-        row["variant"] = variant_summary
-        run_rows.append(row)
-        scored.append(score_case(case, row))
+    if not cases:
+        raise ValueError("No cases available to run.")
+
+    batch_size = args.batch_size if args.batch_size and args.batch_size > 0 else len(cases)
+    print(f"Running {len(cases)} cases in batch mode (batch_size={batch_size}) for mode={args.mode}")
+
+    def _run_batch_with_fallback(case_batch):
+        try:
+            return run_financial_workflow_batch(
+                report_text=report_text,
+                cases=case_batch,
+                model=args.model,
+                temperature=args.temperature,
+                **flags,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if len(case_batch) <= 1 or not _is_context_length_error(exc):
+                raise
+            mid = max(1, len(case_batch) // 2)
+            left = _run_batch_with_fallback(case_batch[:mid])
+            right = _run_batch_with_fallback(case_batch[mid:])
+            return left + right
+
+    for start in range(0, len(cases), batch_size):
+        case_batch = cases[start : start + batch_size]
+        wf_batch = _run_batch_with_fallback(case_batch)
+        for offset, case in enumerate(case_batch, start=1):
+            if offset - 1 >= len(wf_batch):
+                continue
+            wf = wf_batch[offset - 1]
+            print(f"[{start + offset}/{len(cases)}] Running case {case.case_id} ({args.mode})")
+            row = workflow_result_to_dict(wf)
+            row["variant"] = variant_summary
+            run_rows.append(row)
+            scored.append(score_case(case, row))
 
     metrics = aggregate_scores(scored)
     metrics["variant"] = variant_summary

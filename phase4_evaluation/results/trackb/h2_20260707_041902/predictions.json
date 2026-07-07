@@ -1,0 +1,441 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "$109,896 million",
+    "citations": [
+      "Total revenues $ 90,234 $ 109,896",
+      "Total revenues $ 90,234 $ 109,896",
+      "Total revenues $ 90,234 $ 109,896 $ 107,071  22 %  0 %  3 %  19 %",
+      "Revenues $ 90,234 $ 109,896"
+    ],
+    "raw_response": "ANSWER: $109,896 million\nCITATIONS: Total revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896 $ 107,071  22 %  0 %  3 %  19 %; Revenues $ 90,234 $ 109,896",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 109896.0,
+        "expected_value": 109896.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "$90,234 million",
+    "citations": [
+      "Total revenues $ 90,234 $ 109,896",
+      "The following table summarizes our consolidated financial results for the quarter ended March 31, 2025 and 2026 (in millions)",
+      "Revenues $ 90,234 $ 109,896"
+    ],
+    "raw_response": "ANSWER: $90,234 million\nCITATIONS: Total revenues $ 90,234 $ 109,896; The following table summarizes our consolidated financial results for the quarter ended March 31, 2025 and 2026 (in millions); Revenues $ 90,234 $ 109,896",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 90234.0,
+        "expected_value": 90234.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "22%",
+    "citations": [
+      "• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion",
+      "Change in revenues year over year  12 %  22 %"
+    ],
+    "raw_response": "ANSWER: 22%\nCITATIONS: • Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion; Change in revenues year over year  12 %  22 %",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.22,
+        "expected_value": 0.22
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026 (USD millions)?",
+    "answer": "Consolidated operating income in Q1 2026 was $39,696 million.",
+    "citations": [
+      "Operating income $ 30,606 $ 39,696",
+      "Total income from operations $ 30,606 $ 39,696"
+    ],
+    "raw_response": "ANSWER: Consolidated operating income in Q1 2026 was $39,696 million.\nCITATIONS: Operating income $ 30,606 $ 39,696; Total income from operations $ 30,606 $ 39,696",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 39696.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "36%",
+    "citations": [
+      "• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%",
+      "Operating margin  34 %  36 %"
+    ],
+    "raw_response": "ANSWER: 36%\nCITATIONS: • Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%; Operating margin  34 %  36 %",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.36,
+        "expected_value": 0.36
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C06",
+    "question": "What was other income (expense), net in Q1 2026 (USD millions)?",
+    "answer": "Other income (expense), net was $37,716 million in Q1 2026.",
+    "citations": [
+      "Other income (expense), net $ 11,183 $ 37,716",
+      "Other income (expense), net  11,183  37,716",
+      "Other income (expense), net $ 11,183 $ 37,716"
+    ],
+    "raw_response": "ANSWER: Other income (expense), net was $37,716 million in Q1 2026.\nCITATIONS: Other income (expense), net $ 11,183 $ 37,716; Other income (expense), net  11,183  37,716; Other income (expense), net $ 11,183 $ 37,716",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 37716.0,
+        "expected_value": 37716.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C07",
+    "question": "What was net income in Q1 2026 (USD millions)?",
+    "answer": "Net income in Q1 2026 was $62,578 million.",
+    "citations": [
+      "Net income $ 34,540 $ 62,578",
+      "Net income $ 34,540 $ 62,578",
+      "Net income $ 34,540 $ 62,578"
+    ],
+    "raw_response": "ANSWER: Net income in Q1 2026 was $62,578 million.\nCITATIONS: Net income $ 34,540 $ 62,578; Net income $ 34,540 $ 62,578; Net income $ 34,540 $ 62,578",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 62578.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C08",
+    "question": "What was diluted EPS in Q1 2026 (USD per share)?",
+    "answer": "Diluted EPS in Q1 2026 was $5.11.",
+    "citations": [
+      "Diluted net income per share $ 2.81 $ 5.11",
+      "Diluted net income per share $ 2.81 $ 5.11",
+      "Diluted net income per share $ 2.81 $ 5.11"
+    ],
+    "raw_response": "ANSWER: Diluted EPS in Q1 2026 was $5.11.\nCITATIONS: Diluted net income per share $ 2.81 $ 5.11; Diluted net income per share $ 2.81 $ 5.11; Diluted net income per share $ 2.81 $ 5.11",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 5.11
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C09",
+    "question": "What was Google Services revenue in Q1 2026 (USD millions)?",
+    "answer": "Google Services revenue in Q1 2026 was $89,637 million.",
+    "citations": [
+      "Google Services total  77,264  89,637",
+      "Google Services $ 77,264 $ 89,637",
+      "• Google Services revenues increased 16% to $89.6 billion",
+      "Google Services $ 77,264 $ 89,637"
+    ],
+    "raw_response": "ANSWER: Google Services revenue in Q1 2026 was $89,637 million.\nCITATIONS: Google Services total  77,264  89,637; Google Services $ 77,264 $ 89,637; • Google Services revenues increased 16% to $89.6 billion; Google Services $ 77,264 $ 89,637",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 89637.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C10",
+    "question": "What was Google Cloud revenue in Q1 2026 (USD millions)?",
+    "answer": "Google Cloud revenue in Q1 2026 was $20,028 million.",
+    "citations": [
+      "Google Cloud  12,260  20,028",
+      "Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion",
+      "Google Cloud  12,260  20,028"
+    ],
+    "raw_response": "ANSWER: Google Cloud revenue in Q1 2026 was $20,028 million.\n\nCITATIONS: Google Cloud  12,260  20,028; Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion; Google Cloud  12,260  20,028",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 20028.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "h2",
+      "enabled_harnesses": [
+        "use_h2_numeric_guard"
+      ],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": false,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

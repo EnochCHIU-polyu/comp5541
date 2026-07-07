@@ -65,7 +65,7 @@ export function TrackBH1Page() {
           <p className="aw-subtle text-xs uppercase tracking-[0.2em]">
             Track B Harness H1
           </p>
-          <h1 className="aw-title mt-2 text-3xl font-bold">H1 Code Editor</h1>
+          <h1 className="aw-title mt-2 text-3xl font-bold">H1 Harness</h1>
           <p className="aw-subtle mt-2 text-sm">
             Edit full source code directly and save changes.
           </p>

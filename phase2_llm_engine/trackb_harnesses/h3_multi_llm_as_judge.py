@@ -49,9 +49,10 @@ def build_h3_review_prompts(
                 "- FAIL if any material claim is unsupported.\n"
                 "- FAIL for any number mismatch (digit, decimal, sign, %, basis points, scale like thousand/million/billion, unit, currency, date/period, or entity).\n"
                 "- FAIL if draft citations are missing, non-verbatim, or do not support the claim.\n"
+                "- PASS when the value is numerically equivalent under explicit conversion/rounding requested by the question and supported by Context.\n"
                 "- PASS only when fully supported and numerically consistent.\n"
                 "- If evidence is genuinely missing, prefer FAIL | INSUFFICIENT_EVIDENCE.\n"
-                "Use short reason codes such as SUPPORTED, NUMERIC_MISMATCH, UNIT_MISMATCH, PERIOD_MISMATCH, ENTITY_MISMATCH, UNSUPPORTED, BAD_CITATIONS, INSUFFICIENT_EVIDENCE."
+                "Use exactly one short reason code from: SUPPORTED, NUMERIC_MISMATCH, UNIT_MISMATCH, PERIOD_MISMATCH, ENTITY_MISMATCH, UNSUPPORTED, BAD_CITATIONS, ANSWER_FORMAT, INSUFFICIENT_EVIDENCE."
             ),
         },
     ]
@@ -81,6 +82,7 @@ def build_h3_review_prompts(
                 "Hard constraints:\n"
                 "- For numeric answers, copy exact value and qualifiers from Context (sign, decimal, scale, unit, currency, period/date, entity).\n"
                 "- Do not recompute, normalize, or round unless Context explicitly states the transformed value.\n"
+                "- If prior draft already has a correct value but weak citations, keep the value and only repair citations.\n"
                 "- Keep answer minimal (ideally one value + unit/time).\n"
                 "- Do not invent facts not present in Context.\n"
                 "- If evidence is insufficient for a reliable answer, output exactly:\n"
@@ -132,9 +134,10 @@ def build_h3_batch_judge_prompt(items: list[dict[str, str]]) -> list[dict[str, s
                 "Rules:\n"
                 "- PASS only if every material claim is directly supported by Context.\n"
                 "- FAIL for any numeric mismatch: value, decimal, sign, %, basis points, scale (thousand/million/billion), unit, currency, period/date, or entity mismatch.\n"
+                "- PASS when values are equivalent under explicit conversion/rounding requested by the question and supported by Context.\n"
                 "- FAIL if draft citations are missing, non-verbatim, or not supporting the claim.\n"
                 "- If Context is insufficient, output FAIL | INSUFFICIENT_EVIDENCE.\n"
-                "- judge must start with PASS or FAIL; keep reason short using code-like labels.\n"
+                "- judge must start with PASS or FAIL and include one reason code from: SUPPORTED, NUMERIC_MISMATCH, UNIT_MISMATCH, PERIOD_MISMATCH, ENTITY_MISMATCH, UNSUPPORTED, BAD_CITATIONS, ANSWER_FORMAT, INSUFFICIENT_EVIDENCE.\n"
                 "- citations must be an array: 1-2 short verbatim snippets from Context, or [\"NONE\"] when none.\n"
                 "- No extra keys, prose, markdown, or code fences.\n\n"
                 + "\n\n".join(sections)
@@ -181,6 +184,7 @@ def build_h3_batch_revision_prompt(items: list[dict[str, str]]) -> list[dict[str
                 "Hard constraints:\n"
                 "- For numeric cases, copy exact value and qualifiers from Context (sign, decimal, %, basis points, scale, unit, currency, period/date, entity).\n"
                 "- Do not recompute, normalize, or round unless explicitly stated in Context.\n"
+                "- If prior draft value is correct and only citation support is weak, keep value and repair citations only.\n"
                 "- Keep answer minimal and precise (prefer one value + unit/time).\n"
                 "- Do not invent facts not present in Context.\n"
                 "- citations must be an array of 1-2 short verbatim snippets that directly support the answer.\n"

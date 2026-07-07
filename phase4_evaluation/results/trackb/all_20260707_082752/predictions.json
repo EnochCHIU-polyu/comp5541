@@ -1,0 +1,496 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "109896 USD millions",
+    "citations": [
+      "Total revenues $ 90,234 $ 109,896"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 109896.0,
+        "expected_value": 109896.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "FAIL | NUMERIC_MISMATCH",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "INSUFFICIENT_EVIDENCE",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 90234.0,
+        "expected_value": 90234.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "FAIL | INSUFFICIENT_EVIDENCE",
+        "revision_applied": true,
+        "revise_raw": "{\"layer\": 1, \"row\": {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]}}"
+      },
+      "verification": {
+        "applied": true,
+        "verified": false,
+        "reason": "unit mismatch",
+        "revision_applied": false,
+        "repair_actions": [],
+        "initial_reason": "unit mismatch"
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "22%",
+    "citations": [
+      "• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion",
+      "Change in revenues year over year  12 %  22 %"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.22,
+        "expected_value": 0.22
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "PASS | SUPPORTED",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026 (USD millions)?",
+    "answer": "39696 USD millions",
+    "citations": [
+      "Operating income $ 30,606 $ 39,696"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 39696.0,
+        "expected_value": 39696.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "PASS | SUPPORTED",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "36%",
+    "citations": [
+      "• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.",
+      "Operating margin  34 %  36 %"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.36,
+        "expected_value": 0.36
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "FAIL | NUMERIC_MISMATCH",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C06",
+    "question": "What was other income (expense), net in Q1 2026 (USD millions)?",
+    "answer": "37716 USD millions",
+    "citations": [
+      "Other income (expense), net $ 11,183 $ 37,716"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 37716.0,
+        "expected_value": 37716.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "PASS | SUPPORTED",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C07",
+    "question": "What was net income in Q1 2026 (USD millions)?",
+    "answer": "62578 USD millions",
+    "citations": [
+      "Net income $ 34,540 $ 62,578"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 62578.0,
+        "expected_value": 62578.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "PASS | SUPPORTED",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C08",
+    "question": "What was diluted EPS in Q1 2026 (USD per share)?",
+    "answer": "5.11 USD",
+    "citations": [
+      "Diluted net income per share $ 2.81 $ 5.11"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 5.11,
+        "expected_value": 5.11,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "PASS | SUPPORTED",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C09",
+    "question": "What was Google Services revenue in Q1 2026 (USD millions)?",
+    "answer": "89637 USD millions",
+    "citations": [
+      "Google Services $ 77,264 $ 89,637"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 89637.0,
+        "expected_value": 89637.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "FAIL | NUMERIC_MISMATCH",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C10",
+    "question": "What was Google Cloud revenue in Q1 2026 (USD millions)?",
+    "answer": "20028 USD millions",
+    "citations": [
+      "Google Cloud  12,260  20,028"
+    ],
+    "raw_response": "[\n  {\"case_id\": \"C01\", \"answer\": \"109896\", \"citations\": [\"Total revenues $ 90,234 $ 109,896\"]},\n  {\"case_id\": \"C02\", \"answer\": \"INSUFFICIENT_EVIDENCE\", \"citations\": [\"NONE\"]},\n  {\"case_id\": \"C04\", \"answer\": \"39696\", \"citations\": [\"Operating income $ 30,606 $ 39,696\"]},\n  {\"case_id\": \"C06\", \"answer\": \"37716\", \"citations\": [\"Other income (expense), net $ 11,183 $ 37,716\"]},\n  {\"case_id\": \"C07\", \"answer\": \"62578\", \"citations\": [\"Net income $ 34,540 $ 62,578\"]},\n  {\"case_id\": \"C08\", \"answer\": \"5.11\", \"citations\": [\"Diluted net income per share $ 2.81 $ 5.11\"]},\n  {\"case_id\": \"C09\", \"answer\": \"89637\", \"citations\": [\"Google Services $ 77,264 $ 89,637\"]},\n  {\"case_id\": \"C10\", \"answer\": \"20028\", \"citations\": [\"Google Cloud  12,260  20,028\"]}\n]\n\n```json\n[\n  {\n    \"case_id\": \"C03\",\n    \"answer\": \"22%\",\n    \"citations\": [\n      \"• Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion\",\n      \"Change in revenues year over year  12 %  22 %\"\n    ]\n  },\n  {\n    \"case_id\": \"C05\",\n    \"answer\": \"36%\",\n    \"citations\": [\n      \"• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.\",\n      \"Operating margin  34 %  36 %\"\n    ]\n  }\n]\n```",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 20028.0,
+        "expected_value": 20028.0,
+        "canonicalized": true
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": "deepseek-v4-flash",
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 8
+          }
+        ],
+        "judge_result": "FAIL | NUMERIC_MISMATCH",
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]

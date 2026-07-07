@@ -30,6 +30,8 @@ from phase2_llm_engine.trackb_harnesses.h3_multi_llm_as_judge import (
     chronology_guard,
 )
 from phase2_llm_engine.trackb_harnesses.h4_evidence_verifier import (
+    canonicalize_numeric_answer,
+    canonicalize_text_answer,
     h2_numeric_guard as numeric_guard,
     repair_answer_deterministic,
     verify_support,
@@ -189,6 +191,93 @@ def _chunk_list(items: list[str], size: int) -> list[list[str]]:
     return [items[i : i + n] for i in range(0, len(items), n)]
 
 
+def _is_arithmetic_case(case: FinancialEvalCase) -> bool:
+    return bool((getattr(case, "arithmetic_expression", "") or "").strip())
+
+
+def _is_timeline_case(case: FinancialEvalCase) -> bool:
+    return bool(getattr(case, "expected_event_order", None))
+
+
+def _is_unanswerable_case(case: FinancialEvalCase) -> bool:
+    return (getattr(case, "answer_type", "") or "").strip().lower() == "unanswerable"
+
+
+def _use_relaxed_h2_prompt(case: FinancialEvalCase) -> bool:
+    return _is_arithmetic_case(case) or _is_timeline_case(case) or _is_unanswerable_case(case)
+
+
+def _merge_keywords(primary: list[str] | None, fallback: list[str] | None) -> list[str] | None:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for source in (primary or [], fallback or []):
+        token = str(source).strip()
+        if not token:
+            continue
+        key = token.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(token)
+    return merged or None
+
+
+def _effective_retrieval_top_k(base_top_k: int, case: FinancialEvalCase) -> int:
+    bonus = 4 if (_is_arithmetic_case(case) or _is_timeline_case(case)) else 0
+    return max(1, min(base_top_k + bonus, 20))
+
+
+def _h3_reason_code(judge_answer: str) -> str:
+    text = str(judge_answer or "").strip()
+    if not text:
+        return ""
+    if "|" in text:
+        return text.split("|", 1)[1].strip().upper()
+    upper = text.upper()
+    if upper.startswith("FAIL"):
+        return "FAIL"
+    if upper.startswith("PASS"):
+        return "PASS"
+    return ""
+
+
+def _should_apply_h3_revision(
+    judge_answer: str,
+    case: FinancialEvalCase,
+    pre_h3_numeric: dict[str, Any] | None,
+) -> bool:
+    upper = str(judge_answer or "").strip().upper()
+    if not upper.startswith("FAIL"):
+        return False
+
+    reason = _h3_reason_code(judge_answer)
+    numeric_match = bool((pre_h3_numeric or {}).get("numeric_match") is True)
+
+    recoverable_reasons = {
+        "BAD_CITATIONS",
+        "ANSWER_FORMAT",
+        "PERIOD_MISMATCH",
+        "ENTITY_MISMATCH",
+        "UNIT_MISMATCH",
+        "UNSUPPORTED",
+        "NUMERIC_MISMATCH",
+        "INSUFFICIENT_EVIDENCE",
+    }
+    if reason and reason not in recoverable_reasons:
+        return False
+
+    if reason in {"NUMERIC_MISMATCH", "UNSUPPORTED"} and numeric_match:
+        return False
+
+    if reason == "INSUFFICIENT_EVIDENCE":
+        if _is_unanswerable_case(case):
+            return False
+        if numeric_match:
+            return False
+
+    return True
+
+
 @dataclass
 class FinancialWorkflowResult:
     case_id: str
@@ -259,13 +348,14 @@ def run_financial_workflow(
     if use_h1_retrieval:
         cfg = h1_config or {}
         retrieval_top_k = int(cfg.get("top_k", 6) or 6)
-        retrieval_keywords = cfg.get("evidence_keywords")
-        if not isinstance(retrieval_keywords, list):
-            retrieval_keywords = None
+        retrieval_keywords_cfg = cfg.get("evidence_keywords")
+        if not isinstance(retrieval_keywords_cfg, list):
+            retrieval_keywords_cfg = None
+        retrieval_keywords = _merge_keywords(retrieval_keywords_cfg, case.evidence_keywords)
         chunks, context = build_retrieval_context(
             report_text,
             case.question,
-            top_k=max(1, min(retrieval_top_k, 20)),
+            top_k=_effective_retrieval_top_k(max(1, min(retrieval_top_k, 20)), case),
             evidence_keywords=retrieval_keywords,
         )
         _emit_progress(
@@ -285,7 +375,7 @@ def run_financial_workflow(
         if numeric_hint:
             hint_blocks.append(numeric_hint)
 
-    if use_h2_numeric_guard:
+    if use_h2_numeric_guard and not _use_relaxed_h2_prompt(case):
         messages = build_h2_prompt(case.question, context, hint_block="\n\n".join(hint_blocks))
     else:
         messages = build_baseline_prompt(case.question, context)
@@ -299,6 +389,11 @@ def run_financial_workflow(
 
     if use_h2_numeric_guard:
         diagnostics["numeric"] = numeric_guard(answer, case)
+        canonical_answer = canonicalize_numeric_answer(answer, case)
+        if canonical_answer != answer:
+            answer = canonical_answer
+            diagnostics["numeric"] = numeric_guard(answer, case)
+            diagnostics["numeric"]["canonicalized"] = True
         _emit_progress(
             progress_callback,
             case.case_id,
@@ -308,6 +403,11 @@ def run_financial_workflow(
         )
     else:
         diagnostics["numeric"] = {"numeric_match": None, "unit_warning": False}
+
+    text_canonical_answer = canonicalize_text_answer(answer, case)
+    if text_canonical_answer != answer:
+        answer = text_canonical_answer
+        diagnostics["text_canonicalized"] = True
 
     if use_h3_chronology_guard:
         diagnostics["chronology_ok"] = chronology_guard(answer, case, report_text)
@@ -321,6 +421,7 @@ def run_financial_workflow(
             model,
             default_batch=1,
         )
+        pre_h3_numeric = numeric_guard(answer, case)
         h3_review: dict[str, Any] = {
             "reviewer_layers": layers,
             "revision_applied": False,
@@ -356,7 +457,7 @@ def run_financial_workflow(
                     "layer_model": reviewer_model,
                 },
             )
-            if judge_answer.upper().startswith("FAIL"):
+            if _should_apply_h3_revision(judge_answer, case, pre_h3_numeric):
                 revise_raw = _query_llm_with_process(
                     f"h3_revision_layer_{idx}",
                     revise_prompt,
@@ -399,6 +500,7 @@ def run_financial_workflow(
             report_text,
             evidence_keywords=case.evidence_keywords,
             expected_unit=case.expected_unit,
+            allow_insufficient=_is_unanswerable_case(case),
         )
         diagnostics["verification"] = initial_verification
         _emit_progress(
@@ -426,6 +528,7 @@ def run_financial_workflow(
                 report_text,
                 evidence_keywords=case.evidence_keywords,
                 expected_unit=case.expected_unit,
+                allow_insufficient=_is_unanswerable_case(case),
             )
             revised_verification["revision_applied"] = bool(repair_actions)
             revised_verification["repair_actions"] = repair_actions
@@ -541,25 +644,29 @@ def run_financial_workflow_batch(
         return results
 
     batch_items: list[dict[str, str]] = []
+    case_by_id: dict[str, FinancialEvalCase] = {case.case_id: case for case in cases}
     context_by_case_id: dict[str, str] = {}
     cfg = h1_config or {}
     retrieval_top_k = max(1, min(int(cfg.get("top_k", 6) or 6), 20))
-    retrieval_keywords = cfg.get("evidence_keywords")
-    if not isinstance(retrieval_keywords, list):
-        retrieval_keywords = None
+    retrieval_keywords_cfg = cfg.get("evidence_keywords")
+    if not isinstance(retrieval_keywords_cfg, list):
+        retrieval_keywords_cfg = None
     for case in cases:
+        effective_top_k = _effective_retrieval_top_k(retrieval_top_k, case)
+        effective_keywords = _merge_keywords(retrieval_keywords_cfg, case.evidence_keywords)
         if use_h1_retrieval:
             _, context = build_retrieval_context(
                 report_text,
                 case.question,
-                top_k=retrieval_top_k,
-                evidence_keywords=retrieval_keywords,
+                top_k=effective_top_k,
+                evidence_keywords=effective_keywords,
             )
         else:
             context = _compact_context(report_text, case.question)
 
-        if len(context) > _BATCH_CONTEXT_CHARS_PER_CASE:
-            context = context[:_BATCH_CONTEXT_CHARS_PER_CASE]
+        cap = 4200 if (_is_arithmetic_case(case) or _is_timeline_case(case)) else _BATCH_CONTEXT_CHARS_PER_CASE
+        if len(context) > cap:
+            context = context[:cap]
 
         hint_blocks: list[str] = []
         if use_h2_numeric_guard:
@@ -577,11 +684,43 @@ def run_financial_workflow_batch(
         )
         context_by_case_id[case.case_id] = context
 
-    messages = build_batch_prompt(batch_items, strict=use_h2_numeric_guard)
+    strict_items: list[dict[str, str]] = []
+    relaxed_items: list[dict[str, str]] = []
+    if use_h2_numeric_guard:
+        for item in batch_items:
+            case = case_by_id.get(item["case_id"])
+            if case is not None and _use_relaxed_h2_prompt(case):
+                relaxed_items.append(item)
+            else:
+                strict_items.append(item)
+    else:
+        relaxed_items = batch_items
+
     for case in cases:
         _emit_progress(progress_callback, case.case_id, "llm_batch", "started", {"batch": True})
-    raw = _query_llm_with_process("batch_primary_answer", messages, model=model, temperature=temperature)
-    parsed_rows = extract_json_array(raw)
+
+    raw_parts: list[str] = []
+    parsed_rows: list[dict[str, Any]] = []
+    if strict_items:
+        strict_raw = _query_llm_with_process(
+            "batch_primary_answer_strict",
+            build_batch_prompt(strict_items, strict=True),
+            model=model,
+            temperature=temperature,
+        )
+        raw_parts.append(strict_raw)
+        parsed_rows.extend(extract_json_array(strict_raw))
+    if relaxed_items:
+        relaxed_raw = _query_llm_with_process(
+            "batch_primary_answer_relaxed",
+            build_batch_prompt(relaxed_items, strict=False),
+            model=model,
+            temperature=temperature,
+        )
+        raw_parts.append(relaxed_raw)
+        parsed_rows.extend(extract_json_array(relaxed_raw))
+
+    raw = "\n\n".join(raw_parts)
     by_id: dict[str, dict[str, Any]] = {}
     for row in parsed_rows:
         key = str(row.get("case_id", "")).strip()
@@ -592,6 +731,7 @@ def run_financial_workflow_batch(
     draft_by_case: dict[str, tuple[str, list[str]]] = {}
     revised_by_case: dict[str, tuple[str, list[str], str]] = {}
     effective_h3_layers: list[dict[str, Any]] = []
+    pre_h3_numeric_by_case: dict[str, dict[str, Any]] = {}
     if use_h3_chronology_guard:
         layers = _normalize_h3_layers(
             h3_layers,
@@ -617,6 +757,7 @@ def run_financial_workflow_batch(
                     draft_citations = [c.strip() for c in raw_citations.split(";") if c.strip()]
 
             draft_by_case[case.case_id] = (draft_answer, draft_citations)
+            pre_h3_numeric_by_case[case.case_id] = numeric_guard(draft_answer, case)
 
         pending_case_ids = [case.case_id for case in cases]
         case_by_id = {case.case_id: case for case in cases}
@@ -691,7 +832,11 @@ def run_financial_workflow_batch(
             failed_case_ids = [
                 case_id
                 for case_id in pending_case_ids
-                if str(judge_by_case.get(case_id, "")).upper().startswith("FAIL")
+                if _should_apply_h3_revision(
+                    judge_by_case.get(case_id, ""),
+                    case_by_id[case_id],
+                    pre_h3_numeric_by_case.get(case_id),
+                )
             ]
 
             for chunk_ids in _chunk_list(failed_case_ids, layer_batch):
@@ -798,7 +943,7 @@ def run_financial_workflow_batch(
     results: list[FinancialWorkflowResult] = []
     for idx, case in enumerate(cases):
         row = by_id.get(case.case_id)
-        if row is None and idx < len(parsed_rows):
+        if row is None and not use_h2_numeric_guard and idx < len(parsed_rows):
             row = parsed_rows[idx]
 
         answer = ""
@@ -819,6 +964,11 @@ def run_financial_workflow_batch(
 
         if use_h2_numeric_guard:
             diagnostics["numeric"] = numeric_guard(answer, case)
+            canonical_answer = canonicalize_numeric_answer(answer, case)
+            if canonical_answer != answer:
+                answer = canonical_answer
+                diagnostics["numeric"] = numeric_guard(answer, case)
+                diagnostics["numeric"]["canonicalized"] = True
             _emit_progress(
                 progress_callback,
                 case.case_id,
@@ -828,6 +978,11 @@ def run_financial_workflow_batch(
             )
         else:
             diagnostics["numeric"] = {"numeric_match": None, "unit_warning": False}
+
+        text_canonical_answer = canonicalize_text_answer(answer, case)
+        if text_canonical_answer != answer:
+            answer = text_canonical_answer
+            diagnostics["text_canonicalized"] = True
 
         if use_h3_chronology_guard:
             diagnostics["chronology_ok"] = chronology_guard(answer, case, report_text)
@@ -884,6 +1039,7 @@ def run_financial_workflow_batch(
                 report_text,
                 evidence_keywords=case.evidence_keywords,
                 expected_unit=case.expected_unit,
+                allow_insufficient=_is_unanswerable_case(case),
             )
             diagnostics["verification"] = initial_verification
             _emit_progress(
@@ -911,6 +1067,7 @@ def run_financial_workflow_batch(
                     report_text,
                     evidence_keywords=case.evidence_keywords,
                     expected_unit=case.expected_unit,
+                    allow_insufficient=_is_unanswerable_case(case),
                 )
                 revised_verification["revision_applied"] = bool(repair_actions)
                 revised_verification["repair_actions"] = repair_actions

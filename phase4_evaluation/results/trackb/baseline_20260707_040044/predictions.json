@@ -1,0 +1,1136 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "N/A",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: N/A\nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "$80,539",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: $80,539  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "16%",
+    "citations": [],
+    "raw_response": "ANSWER: 16%",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026 (USD millions)?",
+    "answer": "1,146",
+    "citations": [],
+    "raw_response": "ANSWER: 1,146",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "31.6%",
+    "citations": [],
+    "raw_response": "ANSWER: 31.6%",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C06",
+    "question": "What was other income (expense), net in Q1 2026 (USD millions)?",
+    "answer": "0",
+    "citations": [],
+    "raw_response": "ANSWER: 0",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C07",
+    "question": "What was net income in Q1 2026 (USD millions)?",
+    "answer": "1,222",
+    "citations": [],
+    "raw_response": "ANSWER: 1,222",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C08",
+    "question": "What was diluted EPS in Q1 2026 (USD per share)?",
+    "answer": "$0.78",
+    "citations": [],
+    "raw_response": "ANSWER: $0.78",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C09",
+    "question": "What was Google Services revenue in Q1 2026 (USD millions)?",
+    "answer": "$96,287",
+    "citations": [],
+    "raw_response": "ANSWER: $96,287",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C10",
+    "question": "What was Google Cloud revenue in Q1 2026 (USD millions)?",
+    "answer": "Information not available.",
+    "citations": [],
+    "raw_response": "ANSWER: Information not available.",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C11",
+    "question": "What was Google Cloud operating income in Q1 2026 (USD millions)?",
+    "answer": "N/A",
+    "citations": [],
+    "raw_response": "ANSWER: N/A",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C12",
+    "question": "What was total TAC in Q1 2026 (USD millions)?",
+    "answer": "530",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: 530  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C13",
+    "question": "How many employees were reported in Q1 2026 supplemental information?",
+    "answer": "1,350",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: 1,350  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C14",
+    "question": "What was cash and cash equivalents at March 31, 2026 (USD millions)?",
+    "answer": "$1,000",
+    "citations": [],
+    "raw_response": "ANSWER: $1,000",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C15",
+    "question": "What were net proceeds from issuance of senior unsecured notes in Q1 2026 (USD billions)?",
+    "answer": "Not specified in provided data.",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: Not specified in provided data.\nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C16",
+    "question": "What was free cash flow in Q1 2026 (USD millions)?",
+    "answer": "$7,197",
+    "citations": [],
+    "raw_response": "ANSWER: $7,197",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C17",
+    "question": "What was total stockholders' equity at March 31, 2026 (USD millions)?",
+    "answer": "$5,245",
+    "citations": [],
+    "raw_response": "ANSWER: $5,245",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C18",
+    "question": "Did the company report Google Cloud revenue increased 63% year over year? Answer yes or no.",
+    "answer": "No",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: No  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C19",
+    "question": "What quarterly cash dividend per share was announced in April 2026 (USD)?",
+    "answer": "Information not available",
+    "citations": [],
+    "raw_response": "ANSWER: Information not available",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C20",
+    "question": "Provide the dividend timeline in order: declaration date -> record date -> payable date.",
+    "answer": "Declaration Date, Record Date, Payable Date",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: Declaration Date, Record Date, Payable Date\nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N01",
+    "question": "Convert the net proceeds from issuance of senior unsecured notes into USD millions.",
+    "answer": "$750 million",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: $750 million  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N02",
+    "question": "Convert the net proceeds from issuance of senior unsecured notes into USD thousands.",
+    "answer": "$1,250,000 thousand",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: $1,250,000 thousand  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N03",
+    "question": "Using Q1 2026 and Q1 2025 total revenues, compute the year-over-year growth rate. Return percentage.",
+    "answer": "14.3%",
+    "citations": [],
+    "raw_response": "ANSWER: 14.3%",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N04",
+    "question": "By how many USD millions did total revenue increase from Q1 2025 to Q1 2026?",
+    "answer": "3.5",
+    "citations": [],
+    "raw_response": "ANSWER: 3.5",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N05",
+    "question": "What share of total revenue came from Google Services in Q1 2026? Return percentage.",
+    "answer": "95.6%",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: 95.6%\nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N06",
+    "question": "What share of total revenue came from Google Cloud in Q1 2026? Return percentage.",
+    "answer": "10%",
+    "citations": [],
+    "raw_response": "ANSWER: 10%",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N07",
+    "question": "What was Google Cloud operating margin in Q1 2026? Return percentage.",
+    "answer": "Not available",
+    "citations": [],
+    "raw_response": "ANSWER: Not available",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N08",
+    "question": "What was TAC as a percentage of Google Services revenue in Q1 2026? Return percentage.",
+    "answer": "32%",
+    "citations": [],
+    "raw_response": "ANSWER: 32%",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N09",
+    "question": "What was free cash flow margin in Q1 2026? Return percentage.",
+    "answer": "20.3%",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: 20.3%  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "N10",
+    "question": "What was cash and cash equivalents as a percentage of total stockholders' equity at March 31, 2026? Return percentage.",
+    "answer": "55.9%",
+    "citations": [
+      "NONE"
+    ],
+    "raw_response": "ANSWER: 55.9%  \nCITATIONS: NONE",
+    "diagnostics": {
+      "retrieved_chunks": 0,
+      "numeric": {
+        "numeric_match": null,
+        "unit_warning": false
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_model": null,
+        "judge_result": null,
+        "revision_applied": false
+      },
+      "verification": {
+        "applied": false,
+        "verified": null
+      }
+    },
+    "variant": {
+      "variant_name": "baseline",
+      "enabled_harnesses": [],
+      "disabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "is_baseline": true,
+      "is_full_workflow": false,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]
