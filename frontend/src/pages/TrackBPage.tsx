@@ -131,6 +131,7 @@ export function TrackBPage() {
   const [casesCount, setCasesCount] = useState(0);
   const [isParsingCases, setIsParsingCases] = useState(false);
   const [profiles, setProfiles] = useState<TrackBProfile[]>(DEFAULT_PROFILES);
+  const [splitHarnesses, setSplitHarnesses] = useState(true);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [casesFile, setCasesFile] = useState<File | null>(null);
   const [isDraggingReport, setIsDraggingReport] = useState(false);
@@ -344,6 +345,7 @@ export function TrackBPage() {
         maxCases,
         batchSize,
         profiles,
+        splitHarnesses,
         h1Components: loadH1ComponentsFromStorage(),
         h3Layers: loadH3LayersFromStorage(),
       });
@@ -536,6 +538,19 @@ export function TrackBPage() {
             </div>
             <p className="aw-subtle text-xs">
               Selected profiles: {selectedProfilesLabel || "baseline"}
+            </p>
+            <label className="mt-1 flex items-center gap-2 text-xs aw-subtle">
+              <input
+                type="checkbox"
+                checked={splitHarnesses}
+                onChange={(e) => setSplitHarnesses(e.target.checked)}
+              />
+              Split selected H1-H4 into separate runs
+            </label>
+            <p className="aw-subtle text-xs">
+              {splitHarnesses
+                ? "Split ON: each selected harness runs independently."
+                : "Split OFF: selected harnesses run as one combined workflow."}
             </p>
           </div>
 
@@ -746,9 +761,9 @@ export function TrackBPage() {
                           </div>
                           <div className="rounded-md bg-slate-50 p-2">
                             citations{" "}
-                            {(Number(profileSummary.citation_rate) * 100).toFixed(
-                              1,
-                            )}
+                            {(
+                              Number(profileSummary.citation_rate) * 100
+                            ).toFixed(1)}
                             %
                           </div>
                         </div>
@@ -758,11 +773,20 @@ export function TrackBPage() {
                             <p className="font-semibold">LLM telemetry</p>
                             <p className="aw-subtle mt-1">
                               requests{" "}
-                              {profileSummary.llm_telemetry_summary.total_requests}{" "}
+                              {
+                                profileSummary.llm_telemetry_summary
+                                  .total_requests
+                              }{" "}
                               | success{" "}
-                              {profileSummary.llm_telemetry_summary.success_count} |
-                              failed{" "}
-                              {profileSummary.llm_telemetry_summary.failure_count}
+                              {
+                                profileSummary.llm_telemetry_summary
+                                  .success_count
+                              }{" "}
+                              | failed{" "}
+                              {
+                                profileSummary.llm_telemetry_summary
+                                  .failure_count
+                              }
                             </p>
                             <p className="aw-subtle">
                               avg latency{" "}
@@ -770,7 +794,10 @@ export function TrackBPage() {
                                 1,
                               )}{" "}
                               ms | total tokens{" "}
-                              {profileSummary.llm_telemetry_summary.total_tokens}
+                              {
+                                profileSummary.llm_telemetry_summary
+                                  .total_tokens
+                              }
                             </p>
                           </div>
                         ) : null}
@@ -791,15 +818,16 @@ export function TrackBPage() {
                                   className="aw-subtle"
                                 >
                                   {row.process} |{" "}
-                                  {Math.round(Number(row.elapsed_ms) || 0)} ms | tok{" "}
-                                  {row.usage?.total_tokens ?? "-"}
+                                  {Math.round(Number(row.elapsed_ms) || 0)} ms |
+                                  tok {row.usage?.total_tokens ?? "-"}
                                 </p>
                               ))}
                           </div>
                         ) : null}
 
                         {(() => {
-                          const telemetryRows = profileSummary.llm_telemetry_preview ?? [];
+                          const telemetryRows =
+                            profileSummary.llm_telemetry_preview ?? [];
                           const latestWithRequest = [...telemetryRows]
                             .reverse()
                             .find(
@@ -817,9 +845,13 @@ export function TrackBPage() {
 
                           return (
                             <div className="space-y-2 rounded-md border border-slate-200 p-2 text-xs">
-                              <p className="font-semibold">Original LLM request</p>
+                              <p className="font-semibold">
+                                Original LLM request
+                              </p>
                               <p className="aw-subtle">
-                                process={latestWithRequest.process} | attempt={latestWithRequest.attempt} | messages={latestWithRequest.message_count}
+                                process={latestWithRequest.process} | attempt=
+                                {latestWithRequest.attempt} | messages=
+                                {latestWithRequest.message_count}
                               </p>
                               <textarea
                                 className="aw-input h-56 overflow-auto font-mono text-xs"
@@ -845,7 +877,9 @@ export function TrackBPage() {
                               key={caseItem.case_id}
                               className="rounded-md border border-slate-200 p-2 text-xs"
                             >
-                              <p className="font-semibold">{caseItem.case_id}</p>
+                              <p className="font-semibold">
+                                {caseItem.case_id}
+                              </p>
                               <p className="aw-subtle mt-1">
                                 {caseItem.question}
                               </p>

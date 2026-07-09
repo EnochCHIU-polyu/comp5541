@@ -52,7 +52,7 @@ class TrackBRunState:
     temperature: float
     max_cases: int
     batch_size: int
-    profiles: List[TrackBProfile]
+    profiles: List[str]
     h1_components: List[TrackBH1ComponentConfig] = field(default_factory=list)
     h3_layers: List[TrackBH3LayerConfig] = field(default_factory=list)
     status: str = "queued"
@@ -254,7 +254,56 @@ class TrackBService:
         }
         return mapping[profile]
 
-    def _variant_summary(self, profile: TrackBProfile, flags: Dict[str, bool]) -> Dict[str, Any]:
+    def _flags_from_harnesses(self, harnesses: set[str]) -> Dict[str, bool]:
+        return {
+            "use_h1_retrieval": "h1" in harnesses,
+            "use_h2_numeric_guard": "h2" in harnesses,
+            "use_h3_chronology_guard": "h3" in harnesses,
+            "use_h4_verifier": "h4" in harnesses,
+        }
+
+    def _resolve_execution_profiles(self, requested_profiles: List[TrackBProfile], split_harnesses: bool) -> List[str]:
+        requested = list(dict.fromkeys(requested_profiles))
+        selected = set(requested)
+
+        if "baseline" in selected and len(selected) > 1:
+            raise ValueError("baseline cannot be combined with other profiles")
+        if "all" in selected and len(selected) > 1:
+            raise ValueError("Profile 'all' is a workflow preset, not a standalone comparison target")
+
+        legacy = [p for p in requested if str(p).startswith("all_minus_")]
+        if legacy:
+            if len(legacy) != len(requested):
+                raise ValueError("all_minus_* profiles cannot be combined with other profiles")
+            return legacy
+
+        if "baseline" in selected:
+            return ["baseline"]
+
+        if "all" in selected:
+            return ["h1", "h2", "h3", "h4"] if split_harnesses else ["all"]
+
+        harness_order = ["h1", "h2", "h3", "h4"]
+        harnesses = [h for h in harness_order if h in selected]
+        if not harnesses:
+            raise ValueError("At least one profile must be selected")
+
+        if split_harnesses:
+            return harnesses
+
+        if len(harnesses) == 4:
+            return ["all"]
+        if len(harnesses) == 1:
+            return harnesses
+        return ["combo_" + "_".join(harnesses)]
+
+    def _execution_flags(self, profile: str) -> Dict[str, bool]:
+        if profile.startswith("combo_"):
+            parts = [p for p in profile.split("_") if p in {"h1", "h2", "h3", "h4"}]
+            return self._flags_from_harnesses(set(parts))
+        return self._profile_flags(profile)  # type: ignore[arg-type]
+
+    def _variant_summary(self, profile: str, flags: Dict[str, bool]) -> Dict[str, Any]:
         enabled = [name for name, on in flags.items() if on]
         disabled = [name for name, on in flags.items() if not on]
         return {
@@ -677,14 +726,13 @@ class TrackBService:
         invalid = [profile for profile in req.profiles if profile not in allowed]
         if invalid:
             raise ValueError(f"Unsupported profiles: {', '.join(invalid)}")
-        if "all" in req.profiles and len(req.profiles) > 1:
-            raise ValueError("Profile 'all' is a workflow preset, not a standalone comparison target")
+        resolved_profiles = self._resolve_execution_profiles(req.profiles, req.split_harnesses)
 
         run_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc)
         progress = {
             p: TrackBProfileProgress(profile=p, status="queued", cases_total=0, cases_completed=0)
-            for p in req.profiles
+            for p in resolved_profiles
         }
         state = TrackBRunState(
             run_id=run_id,
@@ -695,7 +743,7 @@ class TrackBService:
             temperature=req.temperature,
             max_cases=req.max_cases,
             batch_size=req.batch_size,
-            profiles=req.profiles,
+            profiles=resolved_profiles,
             h1_components=req.h1_components,
             h3_layers=req.h3_layers,
             progress=progress,
@@ -715,7 +763,7 @@ class TrackBService:
             run_id=run_id,
             status="queued",
             created_at=now,
-            profiles=req.profiles,
+            profiles=resolved_profiles,
             links={
                 "status": base,
                 "stream": f"{base}/stream",
@@ -751,6 +799,7 @@ class TrackBService:
                 max_cases=req.max_cases,
                 batch_size=req.batch_size,
                 profiles=req.profiles,
+                split_harnesses=req.split_harnesses,
                 h1_components=req.h1_components,
                 h3_layers=req.h3_layers,
             )
@@ -950,7 +999,7 @@ class TrackBService:
 
                 await self._publish(run_id, "trackb_profile_started", "running", {"profile": profile})
 
-                flags = self._profile_flags(profile)
+                flags = self._execution_flags(profile)
                 variant = self._variant_summary(profile, flags)
                 if flags["use_h1_retrieval"]:
                     variant["h1_config"] = self._effective_h1_config(state.h1_components)

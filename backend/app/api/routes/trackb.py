@@ -78,6 +78,7 @@ async def create_trackb_run_upload(
     max_cases: int = Form(default=0),
     batch_size: int = Form(default=1),
     profiles: str = Form(default='["baseline"]'),
+    split_harnesses: str = Form(default="true"),
     h1_components: str = Form(default="[]"),
     h3_layers: str = Form(default="[]"),
 ) -> TrackBRunCreateResponse:
@@ -91,12 +92,20 @@ async def create_trackb_run_upload(
         parsed_h3_layers = json.loads(h3_layers)
         if not isinstance(parsed_h3_layers, list):
             raise ValueError("h3_layers must be a JSON array")
+        split_value = split_harnesses.strip().lower()
+        if split_value in {"true", "1", "yes", "on"}:
+            parsed_split_harnesses = True
+        elif split_value in {"false", "0", "no", "off"}:
+            parsed_split_harnesses = False
+        else:
+            raise ValueError("split_harnesses must be a boolean string")
         req = TrackBUploadRunRequest(
             model=model,
             temperature=temperature,
             max_cases=max_cases,
             batch_size=batch_size,
             profiles=parsed_profiles,
+            split_harnesses=parsed_split_harnesses,
             h1_components=parsed_h1_components,
             h3_layers=parsed_h3_layers,
         )

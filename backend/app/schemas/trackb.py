@@ -46,6 +46,7 @@ class TrackBRunCreateRequest(BaseModel):
     max_cases: int = Field(default=0, ge=0)
     batch_size: int = Field(default=1, ge=1)
     profiles: List[TrackBProfile] = Field(default_factory=lambda: ["baseline"])
+    split_harnesses: bool = True
     h1_components: List["TrackBH1ComponentConfig"] = Field(default_factory=list)
     h3_layers: List["TrackBH3LayerConfig"] = Field(default_factory=list)
 
@@ -56,6 +57,7 @@ class TrackBUploadRunRequest(BaseModel):
     max_cases: int = Field(default=0, ge=0)
     batch_size: int = Field(default=1, ge=1)
     profiles: List[TrackBProfile] = Field(default_factory=lambda: ["baseline"])
+    split_harnesses: bool = True
     h1_components: List["TrackBH1ComponentConfig"] = Field(default_factory=list)
     h3_layers: List["TrackBH3LayerConfig"] = Field(default_factory=list)
 
@@ -125,12 +127,12 @@ class TrackBRunCreateResponse(BaseModel):
     run_id: str
     status: str
     created_at: datetime
-    profiles: List[TrackBProfile] = Field(default_factory=list)
+    profiles: List[str] = Field(default_factory=list)
     links: Dict[str, str] = Field(default_factory=dict)
 
 
 class TrackBProfileProgress(BaseModel):
-    profile: TrackBProfile
+    profile: str
     status: TrackBStage
     cases_total: int = 0
     cases_completed: int = 0
@@ -149,7 +151,7 @@ class TrackBRunStatusResponse(BaseModel):
     temperature: float
     max_cases: int
     batch_size: int
-    profiles: List[TrackBProfile] = Field(default_factory=list)
+    profiles: List[str] = Field(default_factory=list)
     progress: List[TrackBProfileProgress] = Field(default_factory=list)
     error: Optional[str] = None
 

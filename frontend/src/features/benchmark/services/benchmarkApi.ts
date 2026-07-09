@@ -89,6 +89,7 @@ export interface TrackBRunCreateRequest {
   max_cases: number;
   batch_size: number;
   profiles: TrackBProfile[];
+  split_harnesses?: boolean;
   h1_components?: TrackBH1ComponentConfig[];
   h3_layers?: TrackBH3LayerConfig[];
 }
@@ -151,7 +152,7 @@ export interface TrackBRunCreateResponse {
   run_id: string;
   status: string;
   created_at: string;
-  profiles: TrackBProfile[];
+  profiles: string[];
   links: Record<string, string>;
 }
 
@@ -217,7 +218,7 @@ export interface TrackBChatSessionResponse {
 }
 
 export interface TrackBProfileProgress {
-  profile: TrackBProfile;
+  profile: string;
   status: "queued" | "running" | "scoring" | "completed" | "failed";
   cases_total: number;
   cases_completed: number;
@@ -236,7 +237,7 @@ export interface TrackBRunStatusResponse {
   temperature: number;
   max_cases: number;
   batch_size: number;
-  profiles: TrackBProfile[];
+  profiles: string[];
   progress: TrackBProfileProgress[];
   error: string | null;
 }
@@ -511,6 +512,7 @@ export async function createTrackBUploadRun(params: {
   maxCases: number;
   batchSize: number;
   profiles: TrackBProfile[];
+  splitHarnesses?: boolean;
   h1Components?: TrackBH1ComponentConfig[];
   h3Layers?: TrackBH3LayerConfig[];
 }): Promise<TrackBRunCreateResponse> {
@@ -522,6 +524,7 @@ export async function createTrackBUploadRun(params: {
   formData.append("max_cases", String(params.maxCases));
   formData.append("batch_size", String(params.batchSize));
   formData.append("profiles", JSON.stringify(params.profiles));
+  formData.append("split_harnesses", String(params.splitHarnesses ?? true));
   formData.append("h1_components", JSON.stringify(params.h1Components ?? []));
   formData.append("h3_layers", JSON.stringify(params.h3Layers ?? []));
 
