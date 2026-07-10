@@ -37,45 +37,6 @@ If you are new, start from the section that matches your goal.
 
 ---
 
-## Engineering Agent Skill Set
-
-This repo now includes a project-local agent skill bundle at [`.github/skills/engineering/SKILL.md`](.github/skills/engineering/SKILL.md).
-
-### Included Roles
-
-- Frontend Developer
-- Backend Architect
-- AI Engineer
-- Senior Developer
-- Technical Writer
-- Code Reviewer
-- Git Workflow Master
-- Software Architect
-- Minimal Change Engineer
-- SRE
-
-### How To Use It
-
-Tell Copilot which specialist you want, then describe the task in that role’s language.
-
-Examples:
-
-```text
-Use the Frontend Developer agent to redesign the Harness 2 page with a better trend graph.
-```
-
-```text
-Use the Backend Architect agent to harden the Harness 2 upload pipeline and API contract.
-```
-
-```text
-Use the Technical Writer agent to document the engineering skill set and write a quick-start guide.
-```
-
-The reference files are stored in [`.github/skills/engineering/agents/`](.github/skills/engineering/agents/).
-
----
-
 ## Common Setup
 
 ### Requirements
@@ -100,20 +61,15 @@ cd ..
 ### Minimal `.env` (DeepSeek via OpenAI-compatible API)
 
 ```dotenv
-DEEPSEEK_API_KEY=your_key_here
+POE_API_KEY = ${key}
+OPENAI_API_KEY=${POE_API_KEY}
+OPENAI_BASE_URL=https://api.poe.com/v1
 
-OPENAI_API_KEY=${DEEPSEEK_API_KEY}
-OPENAI_BASE_URL=https://api.deepseek.com
+DEFAULT_MODEL=deepseek-v3.2    
+TEMPERATURE=0              
+MAX_CONTEXT_TOKENS=64000
+API_PAUSE_SECONDS=12      
 
-DEFAULT_MODEL=deepseek-v4-flash
-TEMPERATURE=0
-MAX_CONTEXT_TOKENS=32000
-API_PAUSE_SECONDS=13
-
-DEEPSEEK_REASONING_EFFORT=high
-DEEPSEEK_THINKING_ENABLED=true
-
-DATA_BACKEND=local
 ```
 
 Restart running Python services after changing `.env`.
@@ -208,7 +164,7 @@ Run artifacts are written to `phase4_evaluation/results/trackb/`:
 Track B internals:
 
 1. `phase1_data_pipeline/financial_report_dataset.py`
-2. `phase2_llm_engine/harness1_workflow.py`
+2. `phase2_llm_engine/financial_trackb_workflow.py`
 3. `phase4_evaluation/financial_trackb_scorer.py`
 4. `scripts/run_financial_trackb.py`
 
@@ -233,100 +189,3 @@ Implementation:
 - `scripts/pdf_to_md.py`
 - `phase1_data_pipeline/pdf_to_markdown.py`
 
----
-
-## Smart-Contract CLI
-
-Use this for the original terminal-based audit flow.
-
-### Audit
-
-```bash
-source .venv/bin/activate
-.venv/bin/python main.py audit --contract path/to/MyContract.sol
-```
-
-Common variants:
-
-```bash
-.venv/bin/python main.py audit --contract path/to/MyContract.sol --mode binary
-.venv/bin/python main.py audit --contract path/to/MyContract.sol --mode cot
-.venv/bin/python main.py audit --contract path/to/MyContract.sol --verify
-.venv/bin/python main.py audit --contract path/to/MyContract.sol --output results.json
-```
-
-### Generate synthetic contracts
-
-```bash
-.venv/bin/python main.py generate-synthetic --num-vulns 2
-.venv/bin/python main.py generate-synthetic --num-vulns 15
-```
-
-### Download benchmark datasets
-
-```bash
-git clone https://github.com/smartbugs/smartbugs-curated.git data/benchmarks/smartbugs
-git clone https://github.com/smartbugs/SolidiFI-benchmark data/benchmarks/solidifi
-
-.venv/bin/python main.py download-benchmarks --dataset all
-```
-
-### Generate report
-
-```bash
-.venv/bin/python main.py report --results results.json --output report.md
-.venv/bin/python main.py report --results results.json --output report.html --format html
-```
-
-### Seed vulnerability catalog
-
-```bash
-.venv/bin/python main.py seed-vulnerability-catalog
-.venv/bin/python main.py seed-vulnerability-catalog --force
-```
-
----
-
-## Streamlit UI
-
-Legacy human-in-the-loop review app:
-
-```bash
-source .venv/bin/activate
-.venv/bin/python -m streamlit run phase4_evaluation/ui_app.py
-```
-
-Open `http://localhost:8501`.
-
----
-
-## Tests
-
-Run full suite:
-
-```bash
-source .venv/bin/activate
-.venv/bin/python -m pytest tests/ -v
-```
-
-Run by phase:
-
-```bash
-.venv/bin/python -m pytest tests/test_phase1.py -v
-.venv/bin/python -m pytest tests/test_phase2.py -v
-.venv/bin/python -m pytest tests/test_phase3.py -v
-.venv/bin/python -m pytest tests/test_phase4.py -v
-```
-
-These tests run offline and do not require live API calls.
-
----
-
-## Contributor Notes
-
-Phase references:
-
-- [phase1_data_pipeline/README.md](phase1_data_pipeline/README.md)
-- [phase2_llm_engine/README.md](phase2_llm_engine/README.md)
-- [phase3_hyperparameter/README.md](phase3_hyperparameter/README.md)
-- [phase4_evaluation/README.md](phase4_evaluation/README.md)

@@ -89,18 +89,136 @@ export interface TrackBRunCreateRequest {
   max_cases: number;
   batch_size: number;
   profiles: TrackBProfile[];
+  split_harnesses?: boolean;
+  h1_components?: TrackBH1ComponentConfig[];
+  h3_layers?: TrackBH3LayerConfig[];
+}
+
+export interface TrackBH1ComponentConfig {
+  name: string;
+  enabled: boolean;
+  top_k: number;
+  evidence_keywords: string[];
+  note: string;
+}
+
+export interface TrackBH3LayerConfig {
+  model: string;
+  batch_size: number;
+}
+
+export interface TrackBH1CodeSection {
+  name: string;
+  kind: "function" | "class";
+  start_line: number;
+  end_line: number;
+  source: string;
+}
+
+export interface TrackBH1ComponentsResponse {
+  source_path: string;
+  full_source: string;
+  sections: TrackBH1CodeSection[];
+}
+
+export interface TrackBH1SourceSaveResponse {
+  source_path: string;
+  bytes_written: number;
+}
+
+export interface TrackBH2SourceResponse {
+  source_path: string;
+  full_source: string;
+}
+
+export interface TrackBH2SourceSaveResponse {
+  source_path: string;
+  bytes_written: number;
+  runtime_refreshed: boolean;
+}
+
+export interface TrackBH4SourceResponse {
+  source_path: string;
+  full_source: string;
+}
+
+export interface TrackBH4SourceSaveResponse {
+  source_path: string;
+  bytes_written: number;
+  runtime_refreshed: boolean;
 }
 
 export interface TrackBRunCreateResponse {
   run_id: string;
   status: string;
   created_at: string;
-  profiles: TrackBProfile[];
+  profiles: string[];
   links: Record<string, string>;
 }
 
+export interface TrackBChatProfileAnswer {
+  profile: string;
+  answer: string;
+  citations: string[];
+  evidence_lines: number[];
+  primary_evidence_line: number | null;
+  diagnostics: Record<string, unknown>;
+  elapsed_ms: number;
+}
+
+export type TrackBChatHarness = "baseline" | "all" | "h1" | "h2" | "h3" | "h4";
+
+export interface TrackBChatTurn {
+  turn_id: string;
+  question: string;
+  created_at: string;
+  answers: TrackBChatProfileAnswer[];
+}
+
+export interface TrackBChatSessionCreateResponse {
+  session_id: string;
+  status: "ready";
+  created_at: string;
+  report_path: string;
+  report_name: string;
+  model: string;
+  temperature: number;
+}
+
+export interface TrackBChatAskRequest {
+  question: string;
+  harnesses: TrackBChatHarness[];
+  model?: string;
+  temperature?: number;
+  h1_components?: TrackBH1ComponentConfig[];
+  h3_layers?: TrackBH3LayerConfig[];
+}
+
+export interface TrackBChatAskResponse {
+  session_id: string;
+  turn: TrackBChatTurn;
+}
+
+export interface TrackBChatReportResponse {
+  session_id: string;
+  report_path: string;
+  report_name: string;
+  line_count: number;
+  content: string;
+}
+
+export interface TrackBChatSessionResponse {
+  session_id: string;
+  created_at: string;
+  report_path: string;
+  report_name: string;
+  model: string;
+  temperature: number;
+  turns: TrackBChatTurn[];
+}
+
 export interface TrackBProfileProgress {
-  profile: TrackBProfile;
+  profile: string;
   status: "queued" | "running" | "scoring" | "completed" | "failed";
   cases_total: number;
   cases_completed: number;
@@ -119,7 +237,7 @@ export interface TrackBRunStatusResponse {
   temperature: number;
   max_cases: number;
   batch_size: number;
-  profiles: TrackBProfile[];
+  profiles: string[];
   progress: TrackBProfileProgress[];
   error: string | null;
 }
@@ -141,6 +259,41 @@ export interface TrackBArtifactsResponse {
   profiles: Array<{
     profile: string;
     metrics: Record<string, unknown>;
+    llm_telemetry_summary?: {
+      total_requests: number;
+      success_count: number;
+      failure_count: number;
+      total_elapsed_ms: number;
+      avg_elapsed_ms: number;
+      total_prompt_tokens: number;
+      total_completion_tokens: number;
+      total_tokens: number;
+    };
+    llm_telemetry_preview?: Array<{
+      started_at: string;
+      ended_at: string;
+      elapsed_ms: number;
+      provider: string | null;
+      model: string;
+      temperature: number;
+      max_tokens: number;
+      message_count: number;
+      attempt: number;
+      success: boolean;
+      process: string;
+      usage: {
+        prompt_tokens: number | null;
+        completion_tokens: number | null;
+        total_tokens: number | null;
+      };
+      request_messages?: Array<{
+        role: string;
+        content: unknown;
+        [key: string]: unknown;
+      }>;
+      error: string | null;
+      profile?: string;
+    }>;
     wrong_cases: Array<{
       case_id: string;
       question: string;
@@ -171,6 +324,36 @@ export interface TrackBHistoryResponse {
     profiles: Array<{
       profile: string;
       metrics: Record<string, unknown>;
+      llm_telemetry_summary?: {
+        total_requests: number;
+        success_count: number;
+        failure_count: number;
+        total_elapsed_ms: number;
+        avg_elapsed_ms: number;
+        total_prompt_tokens: number;
+        total_completion_tokens: number;
+        total_tokens: number;
+      };
+      llm_telemetry_preview?: Array<{
+        started_at: string;
+        ended_at: string;
+        elapsed_ms: number;
+        provider: string | null;
+        model: string;
+        temperature: number;
+        max_tokens: number;
+        message_count: number;
+        attempt: number;
+        success: boolean;
+        process: string;
+        usage: {
+          prompt_tokens: number | null;
+          completion_tokens: number | null;
+          total_tokens: number | null;
+        };
+        error: string | null;
+        profile?: string;
+      }>;
       wrong_cases: Array<{
         case_id: string;
         question: string;
@@ -210,83 +393,6 @@ export interface TrackBEvent {
   seq: number;
   ts: string;
   payload: Record<string, unknown>;
-}
-
-export interface Harness2BuildRequest {
-  seed_url: string;
-  symbol: string;
-  max_reports: number;
-  horizon_days: number;
-  analysis_profile: "baseline" | "h1_all";
-  model: string;
-  temperature: number;
-}
-
-export interface Harness2UploadBuildRequest {
-  source_file: File;
-  symbol: string;
-  max_reports: number;
-  horizon_days: number;
-  analysis_profile: "baseline" | "h1_all";
-  model: string;
-  temperature: number;
-}
-
-export interface Harness2ReportItem {
-  title: string;
-  source_url: string;
-  pdf_path: string;
-  markdown_path: string;
-  internal_report_path: string;
-  report_date: string | null;
-  predicted_trend: string;
-  actual_trend: string;
-  trend_correct: boolean | null;
-  price_start: number | null;
-  price_end: number | null;
-  summary: string;
-  overview: string;
-  further_direction: string;
-  rating: number;
-}
-
-export interface Harness2TrendPoint {
-  date: string;
-  close: number;
-}
-
-export interface Harness2BuildResponse {
-  run_id: string;
-  created_at: string;
-  seed_url: string;
-  resolved_root_link: string;
-  symbol: string;
-  output_dir: string;
-  reports: Harness2ReportItem[];
-  trend_points: Harness2TrendPoint[];
-  evaluation: {
-    root_link_ok: boolean;
-    pdf_download_rate: number;
-    markdown_conversion_rate: number;
-    internal_report_rate: number;
-    trend_eval_coverage: number;
-    trend_direction_accuracy: number;
-    checklist: Record<string, boolean>;
-  };
-  notes: string[];
-  download_script_path: string;
-  download_script_code: string;
-  metadata: Record<string, unknown>;
-}
-
-export interface Harness2HistoryResponse {
-  runs: Harness2BuildResponse[];
-  total: number;
-  limit: number;
-  q: string | null;
-  symbol: string | null;
-  sort: "created_at" | "run_id" | "symbol";
-  order: "asc" | "desc";
 }
 
 export async function checkBackendHealth(): Promise<{ status: string }> {
@@ -393,7 +499,7 @@ export async function createTrackBRun(
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Create Harness 1 run failed: ${res.status} ${detail}`);
+    throw new Error(`Create Track B run failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBRunCreateResponse>;
 }
@@ -406,6 +512,9 @@ export async function createTrackBUploadRun(params: {
   maxCases: number;
   batchSize: number;
   profiles: TrackBProfile[];
+  splitHarnesses?: boolean;
+  h1Components?: TrackBH1ComponentConfig[];
+  h3Layers?: TrackBH3LayerConfig[];
 }): Promise<TrackBRunCreateResponse> {
   const formData = new FormData();
   formData.append("report_file", params.reportFile);
@@ -415,6 +524,9 @@ export async function createTrackBUploadRun(params: {
   formData.append("max_cases", String(params.maxCases));
   formData.append("batch_size", String(params.batchSize));
   formData.append("profiles", JSON.stringify(params.profiles));
+  formData.append("split_harnesses", String(params.splitHarnesses ?? true));
+  formData.append("h1_components", JSON.stringify(params.h1Components ?? []));
+  formData.append("h3_layers", JSON.stringify(params.h3Layers ?? []));
 
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/upload`, {
     method: "POST",
@@ -422,9 +534,157 @@ export async function createTrackBUploadRun(params: {
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Create Harness 1 upload run failed: ${res.status} ${detail}`);
+    throw new Error(
+      `Create Track B upload run failed: ${res.status} ${detail}`,
+    );
   }
   return res.json() as Promise<TrackBRunCreateResponse>;
+}
+
+export async function getTrackBH1Components(): Promise<TrackBH1ComponentsResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h1/components`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(
+      `Get H1 harness components failed: ${res.status} ${detail}`,
+    );
+  }
+  return res.json() as Promise<TrackBH1ComponentsResponse>;
+}
+
+export async function saveTrackBH1Source(
+  fullSource: string,
+): Promise<TrackBH1SourceSaveResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h1/source`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ full_source: fullSource }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Save H1 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH1SourceSaveResponse>;
+}
+
+export async function getTrackBH2Source(): Promise<TrackBH2SourceResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h2/source`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get H2 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH2SourceResponse>;
+}
+
+export async function saveTrackBH2Source(
+  fullSource: string,
+): Promise<TrackBH2SourceSaveResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h2/source`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ full_source: fullSource }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Save H2 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH2SourceSaveResponse>;
+}
+
+export async function getTrackBH4Source(): Promise<TrackBH4SourceResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h4/source`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get H4 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH4SourceResponse>;
+}
+
+export async function saveTrackBH4Source(
+  fullSource: string,
+): Promise<TrackBH4SourceSaveResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/trackb/harnesses/h4/source`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ full_source: fullSource }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Save H4 source failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBH4SourceSaveResponse>;
+}
+
+export async function createTrackBChatSessionUpload(params: {
+  reportFile: File;
+  model: string;
+  temperature: number;
+  h1Components?: TrackBH1ComponentConfig[];
+  h3Layers?: TrackBH3LayerConfig[];
+}): Promise<TrackBChatSessionCreateResponse> {
+  const formData = new FormData();
+  formData.append("report_file", params.reportFile);
+  formData.append("model", params.model);
+  formData.append("temperature", String(params.temperature));
+  formData.append("h1_components", JSON.stringify(params.h1Components ?? []));
+  formData.append("h3_layers", JSON.stringify(params.h3Layers ?? []));
+
+  const res = await fetch(`${API_BASE}/api/v1/trackb/chat/sessions/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(
+      `Create Track B chat session failed: ${res.status} ${detail}`,
+    );
+  }
+  return res.json() as Promise<TrackBChatSessionCreateResponse>;
+}
+
+export async function askTrackBChatSession(
+  sessionId: string,
+  payload: TrackBChatAskRequest,
+): Promise<TrackBChatAskResponse> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/chat/sessions/${sessionId}/ask`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Ask Track B chat session failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBChatAskResponse>;
+}
+
+export async function getTrackBChatSession(
+  sessionId: string,
+): Promise<TrackBChatSessionResponse> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/chat/sessions/${sessionId}`,
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B chat session failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBChatSessionResponse>;
+}
+
+export async function getTrackBChatSessionReport(
+  sessionId: string,
+): Promise<TrackBChatReportResponse> {
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/chat/sessions/${sessionId}/report`,
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Get Track B chat report failed: ${res.status} ${detail}`);
+  }
+  return res.json() as Promise<TrackBChatReportResponse>;
 }
 
 export async function getTrackBRunStatus(
@@ -433,76 +693,9 @@ export async function getTrackBRunStatus(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}`);
   if (!res.ok) {
     const detail = await res.text();
-    if (res.status === 404) {
-      throw new Error(`Get Harness 1 run status failed: 404 ${detail}`);
-    }
-    throw new Error(`Get Harness 1 run status failed: ${res.status} ${detail}`);
+    throw new Error(`Get Track B run status failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBRunStatusResponse>;
-}
-
-export async function buildHarness2History(
-  payload: Harness2BuildRequest,
-): Promise<Harness2BuildResponse> {
-  const res = await fetch(`${API_BASE}/api/v1/harness2/history/build`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`Build Harness 2 history failed: ${res.status} ${detail}`);
-  }
-  return res.json() as Promise<Harness2BuildResponse>;
-}
-
-export async function buildHarness2HistoryUpload(
-  payload: Harness2UploadBuildRequest,
-): Promise<Harness2BuildResponse> {
-  const formData = new FormData();
-  formData.append("source_file", payload.source_file);
-  formData.append("symbol", payload.symbol);
-  formData.append("max_reports", String(payload.max_reports));
-  formData.append("horizon_days", String(payload.horizon_days));
-  formData.append("analysis_profile", payload.analysis_profile);
-  formData.append("model", payload.model);
-  formData.append("temperature", String(payload.temperature));
-
-  const res = await fetch(`${API_BASE}/api/v1/harness2/history/upload-build`, {
-    method: "POST",
-    body: formData,
-  });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`Build Harness 2 upload history failed: ${res.status} ${detail}`);
-  }
-  return res.json() as Promise<Harness2BuildResponse>;
-}
-
-export async function getHarness2History(params: {
-  limit?: number;
-  q?: string;
-  symbol?: string;
-  sort?: "created_at" | "run_id" | "symbol";
-  order?: "asc" | "desc";
-} = {}): Promise<Harness2HistoryResponse> {
-  const search = new URLSearchParams();
-  search.set("limit", String(params.limit ?? 20));
-  search.set("sort", params.sort ?? "created_at");
-  search.set("order", params.order ?? "desc");
-  if (params.q?.trim()) {
-    search.set("q", params.q.trim());
-  }
-  if (params.symbol?.trim()) {
-    search.set("symbol", params.symbol.trim());
-  }
-
-  const res = await fetch(`${API_BASE}/api/v1/harness2/history?${search.toString()}`);
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`Get Harness 2 history failed: ${res.status} ${detail}`);
-  }
-  return res.json() as Promise<Harness2HistoryResponse>;
 }
 
 export async function getTrackBMetrics(
@@ -511,7 +704,7 @@ export async function getTrackBMetrics(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/metrics`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Harness 1 metrics failed: ${res.status} ${detail}`);
+    throw new Error(`Get Track B metrics failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBMetricsResponse>;
 }
@@ -522,7 +715,7 @@ export async function getTrackBArtifacts(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/artifacts`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Harness 1 artifacts failed: ${res.status} ${detail}`);
+    throw new Error(`Get Track B artifacts failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBArtifactsResponse>;
 }
@@ -531,10 +724,12 @@ export async function getTrackBHistory(
   limit = 20,
 ): Promise<TrackBHistoryResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
-  const res = await fetch(`${API_BASE}/api/v1/trackb/history?${params.toString()}`);
+  const res = await fetch(
+    `${API_BASE}/api/v1/trackb/history?${params.toString()}`,
+  );
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Harness 1 history failed: ${res.status} ${detail}`);
+    throw new Error(`Get Track B history failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBHistoryResponse>;
 }
@@ -550,7 +745,7 @@ export async function getTrackBComparison(
   });
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Harness 1 comparison failed: ${res.status} ${detail}`);
+    throw new Error(`Get Track B comparison failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBComparisonResponse>;
 }
@@ -561,7 +756,7 @@ export async function getTrackBReproduce(
   const res = await fetch(`${API_BASE}/api/v1/trackb/runs/${runId}/reproduce`);
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(`Get Harness 1 reproduce failed: ${res.status} ${detail}`);
+    throw new Error(`Get Track B reproduce failed: ${res.status} ${detail}`);
   }
   return res.json() as Promise<TrackBReproduceResponse>;
 }
@@ -570,7 +765,9 @@ export function streamTrackBRunEvents(
   runId: string,
   onEvent: (evt: TrackBEvent) => void,
 ): EventSource {
-  const source = new EventSource(`${API_BASE}/api/v1/trackb/runs/${runId}/stream`);
+  const source = new EventSource(
+    `${API_BASE}/api/v1/trackb/runs/${runId}/stream`,
+  );
   const handler = (event: MessageEvent<string>) => {
     try {
       const payload = JSON.parse(event.data) as TrackBEvent;

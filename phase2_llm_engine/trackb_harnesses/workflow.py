@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import re
+from typing import cast
 
 from phase1_data_pipeline.financial_report_dataset import FinancialEvalCase
-from phase2_llm_engine.trackb_harnesses.h1_retrieval import build_retrieval_context
-from phase2_llm_engine.trackb_harnesses.h2_numeric_guard import build_h2_prompt, build_numeric_hint, numeric_guard
-from phase2_llm_engine.trackb_harnesses.h3_chronology_guard import build_h3_review_prompts, chronology_guard
-from phase2_llm_engine.trackb_harnesses.h4_verifier import repair_answer_deterministic, verify_support
-from phase2_llm_engine.trackb_harnesses.types import HarnessState, WorkflowRuntime
+from phase2_llm_engine.trackb_harnesses.h1_code_base import build_retrieval_context
+from phase2_llm_engine.trackb_harnesses.h2_prompt_base import build_h2_prompt, build_numeric_hint
+from phase2_llm_engine.trackb_harnesses.h3_multi_llm_as_judge import build_h3_review_prompts, chronology_guard
+from phase2_llm_engine.trackb_harnesses.h4_evidence_verifier import (
+    h2_numeric_guard as numeric_guard,
+    repair_answer_deterministic,
+    verify_support,
+)
+from phase2_llm_engine.trackb_harnesses.types import HarnessState, NumericDiag, VerifyDiag, WorkflowRuntime
 
 
 _RUNTIME: WorkflowRuntime | None = None
@@ -169,7 +174,7 @@ def run_workflow(query, use_h1=False, use_h2=False, use_h3=False, use_h4=False):
     state.stage_trace.append("generate")
 
     if use_h2:
-        state.numeric_diag = numeric_guard(state.answer, case)
+        state.numeric_diag = cast(NumericDiag, numeric_guard(state.answer, case))
         state.diagnostics["numeric_diag"] = state.numeric_diag
         state.stage_trace.append("h2_guard")
 
@@ -213,7 +218,7 @@ def run_workflow(query, use_h1=False, use_h2=False, use_h3=False, use_h4=False):
             evidence_keywords=case.evidence_keywords,
             expected_unit=case.expected_unit,
         )
-        verify_diag = dict(verify_before)
+        verify_diag = cast(VerifyDiag, dict(verify_before))
         if not verify_before.get("verified", False):
             repaired_answer, repaired_citations, actions = repair_answer_deterministic(
                 answer=state.answer,

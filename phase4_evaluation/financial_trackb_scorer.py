@@ -27,6 +27,33 @@ class CaseScore:
 
 
 _NUM_RE = re.compile(r"\(?[-+]?\d[\d,]*(?:\.\d+)?%?\)?")
+_WORD_RE = re.compile(r"[a-z0-9]{4,}")
+_ARITH_ALLOWED_RE = re.compile(r"[0-9\s\+\-\*\/\(\)\.]+")
+_TEXT_STOPWORDS = {
+    "that",
+    "this",
+    "with",
+    "from",
+    "were",
+    "was",
+    "have",
+    "been",
+    "which",
+    "because",
+    "report",
+    "release",
+    "quarter",
+    "increase",
+    "increased",
+    "decrease",
+    "decreased",
+    "higher",
+    "lower",
+    "only",
+    "says",
+    "said",
+    "about",
+}
 
 
 def _to_float(num_text: str) -> float | None:
@@ -52,6 +79,68 @@ def _extract_first_number(text: str) -> float | None:
     return _to_float(m.group(0))
 
 
+def _extract_numbers(text: str) -> list[float]:
+    values: list[float] = []
+    for m in _NUM_RE.finditer(text or ""):
+        v = _to_float(m.group(0))
+        if v is not None:
+            values.append(v)
+    return values
+
+
+def _eval_arithmetic_parts(expr: str) -> list[float]:
+    values: list[float] = []
+    for part in str(expr or "").split(";"):
+        candidate = part.strip()
+        if not candidate:
+            continue
+        if not _ARITH_ALLOWED_RE.fullmatch(candidate):
+            continue
+        try:
+            value = eval(candidate, {"__builtins__": {}}, {})
+        except Exception:  # noqa: BLE001
+            continue
+        try:
+            values.append(float(value))
+        except Exception:  # noqa: BLE001
+            continue
+    return values
+
+
+def _numeric_close(pred: float, exp: float, tolerance: float) -> bool:
+    tol = max(float(tolerance or 0.0), 1e-9)
+    if abs(pred - exp) <= tol:
+        return True
+    # Handle percent scale ambiguity (0.2179 vs 21.79).
+    if abs(pred * 100.0 - exp) <= tol:
+        return True
+    if abs(pred - exp * 100.0) <= tol:
+        return True
+    return False
+
+
+def _dedupe_numbers(values: list[float]) -> list[float]:
+    deduped: list[float] = []
+    for v in values:
+        if any(abs(v - x) < 1e-12 for x in deduped):
+            continue
+        deduped.append(v)
+    return deduped
+
+
+def _text_keyword_overlap(pred_text: str, expected_text: str) -> float:
+    pred_words = set(_WORD_RE.findall(pred_text.lower()))
+    exp_words = [
+        w for w in _WORD_RE.findall(expected_text.lower())
+        if w not in _TEXT_STOPWORDS and not w.isdigit()
+    ]
+    exp_set = set(exp_words)
+    if not exp_set:
+        return 0.0
+    hits = sum(1 for w in exp_set if w in pred_words)
+    return hits / max(len(exp_set), 1)
+
+
 def score_case(case: FinancialEvalCase, result: dict[str, Any]) -> CaseScore:
     answer = str(result.get("answer", "")).strip()
     low_answer = answer.lower()
@@ -62,17 +151,41 @@ def score_case(case: FinancialEvalCase, result: dict[str, Any]) -> CaseScore:
 
     numeric_correct: bool | None = None
     if case.answer_type == "numeric":
-        pred = _extract_first_number(answer)
-        exp = _to_float(expected)
-        if pred is not None and exp is not None:
-            numeric_correct = abs(pred - exp) <= max(case.tolerance, 1e-9)
+        pred_values = _extract_numbers(answer)
+        expected_values = _eval_arithmetic_parts(case.arithmetic_expression)
+        expected_values.extend(_extract_numbers(expected))
+        expected_values = _dedupe_numbers(expected_values)
+
+        if pred_values and expected_values:
+            numeric_correct = any(
+                _numeric_close(pred, exp, case.tolerance)
+                for pred in pred_values
+                for exp in expected_values
+            )
         else:
             numeric_correct = False
 
     if case.answer_type == "numeric":
         correct = bool(numeric_correct)
     else:
-        correct = low_expected in low_answer
+        if low_expected in {"yes", "no"}:
+            correct = low_answer.startswith(low_expected)
+        elif case.expected_event_order:
+            positions: list[int] = []
+            correct = True
+            for token in case.expected_event_order:
+                idx = low_answer.find(str(token).lower())
+                if idx < 0:
+                    correct = False
+                    break
+                positions.append(idx)
+            if correct:
+                correct = positions == sorted(positions)
+        elif "not disclosed" in low_expected or "not separately disclosed" in low_expected:
+            correct = ("not disclosed" in low_answer) or ("not separately disclosed" in low_answer)
+        else:
+            overlap = _text_keyword_overlap(low_answer, low_expected)
+            correct = low_expected in low_answer or overlap >= 0.45
 
     error_codes: list[str] = []
 

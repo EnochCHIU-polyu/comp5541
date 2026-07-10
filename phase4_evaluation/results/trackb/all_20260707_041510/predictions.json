@@ -1,0 +1,519 @@
+[
+  {
+    "case_id": "C01",
+    "question": "What was Alphabet total revenue in Q1 2026? Return the numeric value in USD millions.",
+    "answer": "$109,896 million",
+    "citations": [
+      "Total revenues $ 90,234 $ 109,896",
+      "Total revenues $ 90,234 $ 109,896"
+    ],
+    "raw_response": "ANSWER: $109,896 million\nCITATIONS: Total revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 109896.0,
+        "expected_value": 109896.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | UNIT_MISMATCH CITATIONS: Total revenues $ 90,234 $ 109,896; Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion",
+        "judge_raw": "FAIL | UNIT_MISMATCH\nCITATIONS: Total revenues $ 90,234 $ 109,896; Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C02",
+    "question": "What was Alphabet total revenue in Q1 2025? Return the numeric value in USD millions.",
+    "answer": "$90,234 million",
+    "citations": [
+      "Total revenues $ 90,234 $ 109,896",
+      "Quarter Ended March 31, 2025 2026 Revenues $ 90,234 $ 109,896",
+      "Total revenues $ 90,234 $ 109,896 $ 107,071  22 %  0 %  3 %  19 %"
+    ],
+    "raw_response": "ANSWER: $90,234 million\nCITATIONS: Total revenues $ 90,234 $ 109,896; Quarter Ended March 31, 2025 2026 Revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896 $ 107,071  22 %  0 %  3 %  19 %",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 90234.0,
+        "expected_value": 90234.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | PERIOD_MISMATCH CITATIONS: Quarter Ended March 31, 2025 2026 Revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896",
+        "judge_raw": "FAIL | PERIOD_MISMATCH\nCITATIONS: Quarter Ended March 31, 2025 2026 Revenues $ 90,234 $ 109,896; Total revenues $ 90,234 $ 109,896",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C03",
+    "question": "What year-over-year revenue growth rate was reported for Q1 2026? Return percentage.",
+    "answer": "22%",
+    "citations": [
+      "Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion",
+      "Change in revenues year over year 12 % 22 %"
+    ],
+    "raw_response": "ANSWER: 22%\nCITATIONS: Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion; Change in revenues year over year 12 % 22 %",
+    "diagnostics": {
+      "retrieved_chunks": 10,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.22,
+        "expected_value": 0.22
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | NUMERIC_MISMATCH CITATIONS: Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion; Change in revenues year over year 12 % 22 %",
+        "judge_raw": "FAIL | NUMERIC_MISMATCH\nCITATIONS: Consolidated Alphabet revenues increased 22%, or 19% in constant currency, to $109.9 billion; Change in revenues year over year 12 % 22 %",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C04",
+    "question": "What was consolidated operating income in Q1 2026 (USD millions)?",
+    "answer": "Consolidated operating income in Q1 2026 was $39,696 million.",
+    "citations": [
+      "Operating income $ 30,606 $ 39,696",
+      "Total income from operations $ 30,606 $ 39,696"
+    ],
+    "raw_response": "ANSWER: Consolidated operating income in Q1 2026 was $39,696 million.\nCITATIONS: Operating income $ 30,606 $ 39,696; Total income from operations $ 30,606 $ 39,696",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 39696.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | NUMERIC_MISMATCH CITATIONS: Operating income $ 30,606 $ 39,696; Total income from operations $ 30,606 $ 39,696",
+        "judge_raw": "FAIL | NUMERIC_MISMATCH\nCITATIONS: Operating income $ 30,606 $ 39,696; Total income from operations $ 30,606 $ 39,696",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C05",
+    "question": "What was consolidated operating margin in Q1 2026? Return percentage.",
+    "answer": "36.1%",
+    "citations": [
+      "• Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.",
+      "Operating margin 34 % 36 %"
+    ],
+    "raw_response": "ANSWER: 36.1%\nCITATIONS: • Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.; Operating margin 34 % 36 %",
+    "diagnostics": {
+      "retrieved_chunks": 10,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 0.361,
+        "expected_value": 0.36
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | NUMERIC_MISMATCH CITATIONS: • Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.; Operating margin 34 % 36 %",
+        "judge_raw": "FAIL | NUMERIC_MISMATCH\nCITATIONS: • Consolidated Alphabet operating income increased 30% and operating margin expanded by 2 percentage points to 36.1%.; Operating margin 34 % 36 %",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C06",
+    "question": "What was other income (expense), net in Q1 2026 (USD millions)?",
+    "answer": "Other income (expense), net was $37,716 million in Q1 2026.",
+    "citations": [
+      "Other income (expense), net $ 11,183 $ 37,716",
+      "Other income (expense), net  11,183  37,716",
+      "Other income (expense), net $ 11,183 $ 37,716",
+      "Other income reflected a net gain of $37.7 billion",
+      "Other income (expense), net $ 11,183 $ 37,716"
+    ],
+    "raw_response": "ANSWER: Other income (expense), net was $37,716 million in Q1 2026.\nCITATIONS: Other income (expense), net $ 11,183 $ 37,716; Other income (expense), net  11,183  37,716; Other income (expense), net $ 11,183 $ 37,716; Other income reflected a net gain of $37.7 billion; Other income (expense), net $ 11,183 $ 37,716",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": true,
+        "unit_warning": false,
+        "pred_value": 37716.0,
+        "expected_value": 37716.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | UNIT_MISMATCH CITATIONS: Other income (expense), net $ 11,183 $ 37,716; Other income reflected a net gain of $37.7 billion The draft answer states \"$37,716 million\", which is $37.716 billion, but the citations show the value as \"$ 37,716\" (in millions) and \"net gain of $37.7 billion\". The draft incorrectly appends the unit \"millions\" to a number already representing millions, causing a unit mismatch. The correct value is $37,716 million (or $37.7 billion), but the draft's phrasing \"$37,716 million\" redundantly scales the number.",
+        "judge_raw": "FAIL | UNIT_MISMATCH\nCITATIONS: Other income (expense), net $ 11,183 $ 37,716; Other income reflected a net gain of $37.7 billion\n\nThe draft answer states \"$37,716 million\", which is $37.716 billion, but the citations show the value as \"$ 37,716\" (in millions) and \"net gain of $37.7 billion\". The draft incorrectly appends the unit \"millions\" to a number already representing millions, causing a unit mismatch. The correct value is $37,716 million (or $37.7 billion), but the draft's phrasing \"$37,716 million\" redundantly scales the number.",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C07",
+    "question": "What was net income in Q1 2026 (USD millions)?",
+    "answer": "Net income in Q1 2026 was $62,578 million.",
+    "citations": [
+      "Net income $ 34,540 $ 62,578",
+      "Net income $ 34,540 $ 62,578",
+      "Net income $ 34,540 $ 62,578"
+    ],
+    "raw_response": "ANSWER: Net income in Q1 2026 was $62,578 million.\nCITATIONS: Net income $ 34,540 $ 62,578; Net income $ 34,540 $ 62,578; Net income $ 34,540 $ 62,578",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 62578.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | PERIOD_MISMATCH CITATIONS: Net income $ 34,540 $ 62,578; Quarter Ended March 31, 2025 2026 The draft answer states \"Q1 2026\", but the cited table heading shows the periods as \"Quarter Ended March 31, 2025 2026\". The context consistently refers to the quarter ended March 31, 2026, as \"Q1 2026\", so the period in the answer is correct. However, the citations provided in the draft output do not explicitly mention \"Q1 2026\"; they only show the financial figures and the column headers with the years. To fully support the claim about the specific period, a citation explicitly mentioning \"Q1 2026\" or \"first quarter 2026\" in relation to the net income figure would be required. The provided citations are insufficient to directly support the period claim.",
+        "judge_raw": "FAIL | PERIOD_MISMATCH\nCITATIONS: Net income $ 34,540 $ 62,578; Quarter Ended March 31, 2025 2026\n\nThe draft answer states \"Q1 2026\", but the cited table heading shows the periods as \"Quarter Ended March 31, 2025 2026\". The context consistently refers to the quarter ended March 31, 2026, as \"Q1 2026\", so the period in the answer is correct. However, the citations provided in the draft output do not explicitly mention \"Q1 2026\"; they only show the financial figures and the column headers with the years. To fully support the claim about the specific period, a citation explicitly mentioning \"Q1 2026\" or \"first quarter 2026\" in relation to the net income figure would be required. The provided citations are insufficient to directly support the period claim.",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C08",
+    "question": "What was diluted EPS in Q1 2026 (USD per share)?",
+    "answer": "Diluted EPS in Q1 2026 was $5.11 per share.",
+    "citations": [
+      "Diluted net income per share $ 2.81 $ 5.11",
+      "Diluted net income per share $ 2.81 $ 5.11"
+    ],
+    "raw_response": "ANSWER: Diluted EPS in Q1 2026 was $5.11 per share.\nCITATIONS: Diluted net income per share $ 2.81 $ 5.11; Diluted net income per share $ 2.81 $ 5.11",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 5.11
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | PERIOD_MISMATCH CITATIONS: Diluted net income per share $ 2.81 $ 5.11; Quarter Ended March 31, 2025 2026 Diluted net income per share $ 2.81 $ 5.11 The draft answer states \"Q1 2026\" but the citations show a table comparing the quarter ended March 31, 2025 to the quarter ended March 31, 2026. The question asks for \"Q1 2026 (USD per share)\". The context explicitly states the results are \"for the quarter ended March 31, 2026\", which is Q1 2026. The draft answer's value ($5.11) is correct for that period, but the citation formatting in the draft incorrectly repeats the 2025 value ($2.81) and does not clearly isolate the 2026 value. The provided correct citations verbatim show the table header and the line containing the value, which supports the $5.11 figure for the quarter ended March 31, 2026. However, the draft's citation text is malformed and does not accurately represent the verbatim evidence. According to the decision rules, this constitutes BAD_CITATIONS.",
+        "judge_raw": "FAIL | PERIOD_MISMATCH\nCITATIONS: Diluted net income per share $ 2.81 $ 5.11; Quarter Ended March 31, 2025 2026 Diluted net income per share $ 2.81 $ 5.11\n\nThe draft answer states \"Q1 2026\" but the citations show a table comparing the quarter ended March 31, 2025 to the quarter ended March 31, 2026. The question asks for \"Q1 2026 (USD per share)\". The context explicitly states the results are \"for the quarter ended March 31, 2026\", which is Q1 2026. The draft answer's value ($5.11) is correct for that period, but the citation formatting in the draft incorrectly repeats the 2025 value ($2.81) and does not clearly isolate the 2026 value. The provided correct citations verbatim show the table header and the line containing the value, which supports the $5.11 figure for the quarter ended March 31, 2026. However, the draft's citation text is malformed and does not accurately represent the verbatim evidence. According to the decision rules, this constitutes BAD_CITATIONS.",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C09",
+    "question": "What was Google Services revenue in Q1 2026 (USD millions)?",
+    "answer": "Google Services revenue in Q1 2026 was $89,637 million.",
+    "citations": [
+      "Google Services total  77,264  89,637",
+      "• Google Services revenues increased 16% to $89.6 billion",
+      "Revenues: Google Services $ 77,264 $ 89,637"
+    ],
+    "raw_response": "ANSWER: Google Services revenue in Q1 2026 was $89,637 million.\nCITATIONS: Google Services total  77,264  89,637; • Google Services revenues increased 16% to $89.6 billion; Revenues: Google Services $ 77,264 $ 89,637",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 89637.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | NUMERIC_MISMATCH CITATIONS: Google Services total 77,264 89,637; Revenues: Google Services $ 77,264 $ 89,637 The draft answer states \"$89,637 million,\" which is numerically correct based on the citations. However, the question specifically asks for the value \"in USD millions,\" and the citations show the value as \"89,637\" (implying millions, as the table header indicates \"in millions\"). The draft answer's formatting \"$89,637 million\" is a mismatch because it redundantly adds both the dollar sign and the word \"million,\" while the cited evidence presents the number without a dollar sign in the table. Since the question asks for the value \"in USD millions,\" the answer should be in the format of a number (e.g., 89637) or \"$89,637\" but not \"$89,637 million\" as that would be double-counting the unit. The numeric value itself is correct, but the presentation of the unit does not match the requested format, leading to a NUMERIC_MISMATCH.",
+        "judge_raw": "FAIL | NUMERIC_MISMATCH\nCITATIONS: Google Services total  77,264  89,637; Revenues: Google Services $ 77,264 $ 89,637\n\nThe draft answer states \"$89,637 million,\" which is numerically correct based on the citations. However, the question specifically asks for the value \"in USD millions,\" and the citations show the value as \"89,637\" (implying millions, as the table header indicates \"in millions\"). The draft answer's formatting \"$89,637 million\" is a mismatch because it redundantly adds both the dollar sign and the word \"million,\" while the cited evidence presents the number without a dollar sign in the table. Since the question asks for the value \"in USD millions,\" the answer should be in the format of a number (e.g., 89637) or \"$89,637\" but not \"$89,637 million\" as that would be double-counting the unit. The numeric value itself is correct, but the presentation of the unit does not match the requested format, leading to a NUMERIC_MISMATCH.",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  },
+  {
+    "case_id": "C10",
+    "question": "What was Google Cloud revenue in Q1 2026 (USD millions)?",
+    "answer": "Google Cloud revenue in Q1 2026 was $20,028 million.",
+    "citations": [
+      "Google Cloud  12,260  20,028",
+      "Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion",
+      "Google Cloud 12,260 20,028"
+    ],
+    "raw_response": "ANSWER: Google Cloud revenue in Q1 2026 was $20,028 million.\nCITATIONS: Google Cloud  12,260  20,028; Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion; Google Cloud 12,260 20,028",
+    "diagnostics": {
+      "retrieved_chunks": 6,
+      "numeric": {
+        "numeric_match": false,
+        "unit_warning": false,
+        "pred_value": 1.0,
+        "expected_value": 20028.0
+      },
+      "chronology_ok": null,
+      "h3_review": {
+        "reviewer_layers": [
+          {
+            "model": "deepseek-v4-flash",
+            "batch_size": 1
+          }
+        ],
+        "revision_applied": false,
+        "judge_result": "FAIL | NUMERIC_MISMATCH CITATIONS: Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion; Google Cloud 12,260 20,028",
+        "judge_raw": "FAIL | NUMERIC_MISMATCH\nCITATIONS: Google Cloud saw a meaningful acceleration in growth as revenues increased 63% to $20.0 billion; Google Cloud 12,260 20,028",
+        "reviewer_model": "deepseek-v4-flash",
+        "layer_index": 1
+      },
+      "verification": {
+        "applied": true,
+        "verified": true,
+        "reason": ""
+      }
+    },
+    "variant": {
+      "variant_name": "all",
+      "enabled_harnesses": [
+        "use_h1_retrieval",
+        "use_h2_numeric_guard",
+        "use_h3_chronology_guard",
+        "use_h4_verifier"
+      ],
+      "disabled_harnesses": [],
+      "is_baseline": false,
+      "is_full_workflow": true,
+      "is_leave_one_out_ablation": false
+    }
+  }
+]
